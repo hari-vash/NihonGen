@@ -13,16 +13,16 @@ def request_anki(action: str, params: dict = None) -> dict:
         "version": 6,
         "params": params
     }
-
+    
     request = urllib.request.Request(
         url='http://localhost:8765', 
         data=json.dumps(payload).encode('utf-8')
     )
-
+    
     try:
         response = urllib.request.urlopen(request)
         response_data = json.loads(response.read())
- 
+        
         if response_data.get('error'):
             raise Exception(f"AnkiConnect Error: {response_data['error']}")
             

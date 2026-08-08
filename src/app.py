@@ -1,26 +1,29 @@
 from dotenv import load_dotenv
+
 load_dotenv()
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.agents import create_agent
 from langchain.messages import HumanMessage
-from kanji_class import KanjiFormat
+from tools import create_kanji_flashcard, check_kanji_exists
 from system_prompt import system_prompt
-from tools import check_kanji_exists,create_kanji_flashcard
+from kanji_class import KanjiFormat
 import time
 import sys
 
-model = ChatGoogleGenerativeAI(model="gemini-3.5-flash-lite")
+model = ChatGoogleGenerativeAI(
+    model="gemini-3.1-flash-lite"
+)
 
 agent = create_agent(
     model=model,
     system_prompt=system_prompt,
     response_format=KanjiFormat,
-    tools=[check_kanji_exists,create_kanji_flashcard]
+    tools=[check_kanji_exists, create_kanji_flashcard],
 )
 
 response = agent.invoke(
-    {"messages": HumanMessage(content="新")}
+    {"messages": [HumanMessage(content="少")]}
 )
 
 parsed_response = response["structured_response"]
