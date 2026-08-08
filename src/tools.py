@@ -38,17 +38,20 @@ def create_kanji_flashcard(
     html_back = polished_text.replace('\n', '<br>')
         
     params = {
-        "note": {
-            "deckName": "Test_Deck1",
-            "modelName": "Basic",
-            "fields": {
-                "Front": kanji,
-                "Back": html_back
-            },
+            "note": {
+                "deckName": "Test_Deck1",
+                "modelName": "Basic",
+                "fields": {
+                    "Front": kanji,
+                    "Back": html_back
+                },
+            }
         }
-    }
-    
-    response = request_anki(action="addNote", params=params)
-    if response:
-        return "success"
-    return "unsuccess. Try again..."
+
+    try:
+        response = request_anki(action="addNote", params=params)
+        if response:
+            return "Successfully created the flashcard."
+        return "Failed to create the card. Try again."
+    except Exception as e:
+        return f"Could not create card. Anki returned this error: {str(e)}"
