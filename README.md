@@ -2,8 +2,8 @@
 
 - initialize chat model (gemini)	====	DONE
 - create agent						====	DONE
-- create a pydantic class			====	
-- define system prompt				====	
+- create a pydantic class			====	DONE
+- define system prompt				====	DONE
 - output polished string			====	
 - create tools (using ankiconnect)	====	
 	- check anki database for exsisting kanji		--
