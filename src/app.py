@@ -6,6 +6,7 @@ from langchain.agents import create_agent
 from langchain.messages import HumanMessage
 from kanji_class import KanjiFormat
 from system_prompt import system_prompt
+from tools import check_kanji_exists,create_kanji_flashcard
 import time
 import sys
 
@@ -15,6 +16,7 @@ agent = create_agent(
     model=model,
     system_prompt=system_prompt,
     response_format=KanjiFormat,
+    tools=[check_kanji_exists,create_kanji_flashcard]
 )
 
 response = agent.invoke(
