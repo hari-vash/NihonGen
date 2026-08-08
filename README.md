@@ -1,2 +1,10 @@
 # NihonGen
-Agentic Japanese language learning assistant
+
+- initialize chat model (gemini)
+- create agent
+- create a pydantic class
+- define system prompt
+- output polished string
+- create tools (using ankiconnect)
+	- check anki database for exsisting kanji
+	- create new flashcards and add them to anki
