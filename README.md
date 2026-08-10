@@ -9,3 +9,8 @@
 - create tools (using ankiconnect)	====	DONE
 	- check anki database for exsisting kanji		--	DONE
 	- create new flashcards and add them to anki	--	DONE
+- introduce short term memory in agent	====	DONE	
+- create an MCP server				====	DONE
+- include context and state			====	
+- manage long conversations			====	
+- introduce human in the loop		====	
