@@ -3,19 +3,20 @@ from kanji_class import KanjiExample
 from connect_anki import request_anki
 
 @tool("check_kanji_exists", description="Search Anki collection(deck) to see if a note for this specific kanji already exists.")
-def check_kanji_exists(kanji: str) -> bool:
+def check_kanji_exists(kanji: str, deck:str) -> bool:
     params = {
-        "query": f'deck:"Test_Deck1" "{kanji}"'
+        "query": f'deck:"{deck}" "{kanji}"'
     }
     note_ids = request_anki(action="findNotes", params=params)
     return len(note_ids) > 0
 
 @tool("create_kanji_flashcard", description="Use this tool to create kanji flashcards and add them to anki deck")
-def create_kanji_flashcard(
+def create_kanji_flashcards(
     kanji: str, 
     onyomi: str, 
     kunyomi: str, 
-    kanji_meaning: str, 
+    kanji_meaning: str,
+    deck:str,
     onyomi_examples: list[KanjiExample],
     kunyomi_examples: list[KanjiExample]
 ) -> str:
@@ -39,7 +40,7 @@ def create_kanji_flashcard(
         
     params = {
             "note": {
-                "deckName": "Test_Deck1",
+                "deckName": deck,
                 "modelName": "Basic",
                 "fields": {
                     "Front": kanji,
