@@ -102,7 +102,7 @@ builder.add_edge("create_flashcard", END)
 graph = builder.compile()
 
 result = graph.invoke({
-    "kanji": "本",
+    "kanji": "間",
     "deck": "Test_Deck1",
 })
 

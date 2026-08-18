@@ -5,7 +5,7 @@ from connect_anki import request_anki
 @tool("check_kanji_exists", description="Search Anki collection(deck) to see if a note for this specific kanji already exists.")
 def check_kanji_exists(kanji: str, deck:str) -> bool:
     params = {
-        "query": f'deck:"{deck}" "{kanji}"'
+        "query": f'deck:"{deck}" Front:"{kanji}"'
     }
     note_ids = request_anki(action="findNotes", params=params)
     return len(note_ids) > 0
