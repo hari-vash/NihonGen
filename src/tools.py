@@ -1,5 +1,5 @@
 from langchain.tools import tool
-from kanji_class import KanjiExample
+from generation_schema import KanjiExample
 from connect_anki import request_anki
 
 @tool("check_kanji_exists", description="Search Anki collection(deck) to see if a note for this specific kanji already exists.")

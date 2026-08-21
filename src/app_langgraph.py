@@ -16,7 +16,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
-from kanji_class import KanjiFormat
+from generation_schema import KanjiFormat
 from tools import check_kanji_exists, create_kanji_flashcards
 
 model = ChatGoogleGenerativeAI(

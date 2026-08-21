@@ -11,7 +11,7 @@ from langchain_mcp_adapters.tools import load_mcp_tools
 
 from tools import create_kanji_flashcard, check_kanji_exists
 from system_prompt import system_prompt
-from kanji_class import KanjiFormat
+from generation_schema import KanjiFormat
 import time
 import sys
 import asyncio
