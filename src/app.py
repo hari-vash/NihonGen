@@ -10,7 +10,7 @@ from mcp.client.stdio import stdio_client
 from langchain_mcp_adapters.tools import load_mcp_tools
 
 from tools import create_kanji_flashcard, check_kanji_exists
-from system_prompt import system_prompt
+from system_prompts import system_prompt_langchain
 from generation_schema import KanjiFormat
 import time
 import sys
@@ -40,7 +40,7 @@ async def run_agent():
 
             agent = create_agent(
                 model=model,
-                system_prompt=system_prompt,
+                system_prompt=system_prompt_langchain,
                 response_format=KanjiFormat,
                 tools=all_tools,
             )
