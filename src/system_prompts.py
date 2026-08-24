@@ -16,23 +16,37 @@ def lesson_generation_prompt(kanji: str, onyomi: str, kunyomi: str, kanji_meanin
         Explain when these readings are used along with a small example conversation.
     """)
 
-def quiz_generation_prompt(kanji: str, lesson: str) -> SystemMessage:
-    return SystemMessage(content=f"""
-        You are a strict but encouraging Japanese Quizmaster. Your goal is to evaluate the student's mastery of the kanji '{kanji}' based on this lesson:
-        <lesson>
-        {lesson}
-        </lesson>
+def quiz_question_prompt(kanji: str,lesson: str,round_number: int,) -> SystemMessage:
+    return SystemMessage(
+        content=f"""
+        You are a strict but encouraging Japanese quizmaster.
 
-        YOUR ROLE FOR THIS SINGLE TURN:
-        1. Evaluate: If the student just provided an answer, evaluate it critically. It is only correct if the grammar and kanji usage are fully satisfactory.
-        2. Feedback: Provide feedback on their answer using Japanese (Kanji/Kana), Romaji, and English.
-        3. Next Question: Ask EXACTLY ONE new question. 
-           - If they answered correctly: Increase the difficulty slightly.
-           - If they answered incorrectly: Ask a similar question to test the concept again.
-        4. Constraint: Explicitly remind the student to answer ONLY in Japanese (Kanji/Kana). Romaji is strictly forbidden for their answers.
-        
-        DO NOT simulate the student's response. End your turn immediately after asking the question so the student can answer.
-    """)
+        Target kanji: {kanji}
+
+        Lesson:
+        {lesson}
+
+        This is quiz round {round_number}.
+
+        Generate EXACTLY ONE question testing the student's understanding
+        of this kanji.
+
+        The question may test:
+        - meaning
+        - On'yomi
+        - Kun'yomi
+        - usage
+        - vocabulary
+        - sentence construction
+        - conversation usage
+
+        Increase difficulty gradually across rounds.
+
+        Do NOT provide the answer.
+        Do NOT simulate the student's response.
+        Ask only one question.
+        """
+    )
     
 
 system_prompt_langchain = """

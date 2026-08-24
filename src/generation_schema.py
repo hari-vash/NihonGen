@@ -67,3 +67,9 @@ class KanjiLesson(BaseModel):
             f"- **Kun'yomi**: {self.usage_guidelines.kunyomi_rule}\n\n"
             f"**Practice Dialogue**\n{dialogue_str}"
         )
+    
+class QuizEvaluation(BaseModel):
+    correct: bool = Field(description="Whether the student's answer is substantially correct.")
+    feedback: str = Field(description="Clear and encouraging feedback on the student's result.")
+    explanation: str = Field(description="Explanation of the correct answer, including the relevant kanji usage.")
+    mastered: bool = Field(description="Whether this student has demonstrated sufficient understanding of this kanji to move on.")
