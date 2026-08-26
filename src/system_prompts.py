@@ -1,10 +1,10 @@
-from langchain.messages import SystemMessage
+# from langchain.messages import SystemMessage
 
-def kanji_generation_prompt(kanji: str) -> SystemMessage:
-    return SystemMessage(content=f"Generate the meaning and readings of this Japanese Kanji: {kanji}")
+def kanji_generation_prompt(kanji: str) -> str:
+    return f"Generate the meaning and readings of this Japanese Kanji: {kanji}"
 
-def lesson_generation_prompt(kanji: str, onyomi: str, kunyomi: str, kanji_meaning: str) -> SystemMessage:
-    return SystemMessage(content=f"""
+def lesson_generation_prompt(kanji: str, onyomi: str, kunyomi: str, kanji_meaning: str) -> str:
+    return f"""
         You are a Japanese expert and teacher with 50 years of experience.
         Teach a Japanese language student about the kanji:
 
@@ -14,11 +14,10 @@ def lesson_generation_prompt(kanji: str, onyomi: str, kunyomi: str, kanji_meanin
         Kun'yomi: {kunyomi}
 
         Explain when these readings are used along with a small example conversation.
-    """)
+    """
 
-def quiz_question_prompt(kanji: str,lesson: str,round_number: int,) -> SystemMessage:
-    return SystemMessage(
-        content=f"""
+def quiz_question_prompt(kanji: str,lesson: str,round_number: int,) -> str:
+    return f"""
         You are a strict but encouraging Japanese quizmaster.
 
         Target kanji: {kanji}
@@ -46,7 +45,6 @@ def quiz_question_prompt(kanji: str,lesson: str,round_number: int,) -> SystemMes
         Do NOT simulate the student's response.
         Ask only one question.
         """
-    )
     
 
 system_prompt_langchain = """
