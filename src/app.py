@@ -10,8 +10,8 @@ from mcp.client.stdio import stdio_client
 from langchain_mcp_adapters.tools import load_mcp_tools
 
 from tools import create_kanji_flashcard, check_kanji_exists
-from system_prompts import system_prompt_langchain
-from generation_schema import KanjiFormat
+from llm.system_prompts import system_prompt_langchain
+from domain.generation_schema import KanjiFormat
 import time
 import sys
 import asyncio
