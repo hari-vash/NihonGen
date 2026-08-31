@@ -1,17 +1,20 @@
-from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
-
 from graph.context import RuntimeContext
+
 from graph.nodes.anki import approve_create,approve_update,check_anki,create_flashcard,update_flashcard
-from graph.nodes.document import get_next_chunk,initialize_document
+from graph.nodes.document import get_next_chunk, initialize_document
 from graph.nodes.kanji import advance_kanji,analyze_kanji,generate_lesson,print_lesson,select_kanji
 from graph.nodes.quiz import evaluate_quiz_answer,explain_again,generate_quiz_question,quiz_readiness,wait_for_answer
 from graph.routing import route_anki,route_chunk,route_create_approval,route_document,route_quiz,route_quiz_readiness,route_update_approval
 from graph.state import State
+from graph.checkpointer import create_checkpointer
 
 
 def build_graph(*, checkpointer=None):
-    builder = StateGraph(State,context_schema=RuntimeContext)
+    builder = StateGraph(
+        State,
+        context_schema=RuntimeContext,
+    )
 
     # Document → Kanji → Lesson
     builder.add_node("initialize_document", initialize_document)
@@ -29,7 +32,6 @@ def build_graph(*, checkpointer=None):
     # Quiz readiness
     builder.add_node("quiz_readiness", quiz_readiness)
     builder.add_node("explain_again", explain_again)
-
     builder.add_edge("print_lesson", "quiz_readiness")
     builder.add_conditional_edges("quiz_readiness",
         route_quiz_readiness,
@@ -38,14 +40,14 @@ def build_graph(*, checkpointer=None):
             "needs_explanation": "explain_again",
             "clarify": "quiz_readiness",
         })
-    builder.add_edge("explain_again","generate_quiz_question")
+    builder.add_edge("explain_again", "generate_quiz_question")
 
     # Quiz loop
-    builder.add_node("generate_quiz_question",generate_quiz_question)
-    builder.add_node("wait_for_answer",wait_for_answer)
-    builder.add_node("evaluate_quiz_answer",evaluate_quiz_answer)
-    builder.add_edge("generate_quiz_question","wait_for_answer")
-    builder.add_edge("wait_for_answer","evaluate_quiz_answer")
+    builder.add_node("generate_quiz_question", generate_quiz_question)
+    builder.add_node("wait_for_answer", wait_for_answer)
+    builder.add_node("evaluate_quiz_answer", evaluate_quiz_answer)
+    builder.add_edge("generate_quiz_question", "wait_for_answer")
+    builder.add_edge("wait_for_answer", "evaluate_quiz_answer")
     builder.add_conditional_edges("evaluate_quiz_answer",
         route_quiz,
         {
@@ -66,7 +68,6 @@ def build_graph(*, checkpointer=None):
             "update_approval": "approve_update",
             "create_approval": "approve_create",
         })
-
     builder.add_conditional_edges("approve_update",
         route_update_approval,
         {
@@ -74,8 +75,7 @@ def build_graph(*, checkpointer=None):
             "skip": "advance_kanji",
             "clarify": "approve_update",
         })
-
-    builder.add_edge("update_flashcard","advance_kanji")
+    builder.add_edge("update_flashcard", "advance_kanji")
     builder.add_conditional_edges("approve_create",
         route_create_approval,
         {
@@ -83,8 +83,7 @@ def build_graph(*, checkpointer=None):
             "skip": "advance_kanji",
             "clarify": "approve_create",
         })
-
-    builder.add_edge("create_flashcard","advance_kanji")
+    builder.add_edge("create_flashcard", "advance_kanji")
 
     # Document progression
     builder.add_node("advance_kanji", advance_kanji)
@@ -96,6 +95,7 @@ def build_graph(*, checkpointer=None):
             "get_next_chunk": "get_next_chunk",
             "finish": END,
         })
+
     builder.add_conditional_edges("get_next_chunk",
         route_document,
         {
@@ -105,6 +105,6 @@ def build_graph(*, checkpointer=None):
 
     # Compile
     if checkpointer is None:
-        checkpointer = MemorySaver()
+        checkpointer = create_checkpointer()
 
     return builder.compile(checkpointer=checkpointer)
