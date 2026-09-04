@@ -35,9 +35,6 @@ def update_flashcard(state: State):
         }
     )
 
-    print("\nAnki:")
-    print(result)
-
     return {"anki_status": result}
 
 
@@ -63,8 +60,5 @@ def create_flashcard(state: State):
             "lesson": state["lesson"],
         }
     )
-
-    print("\nAnki:")
-    print(result)
 
     return {"anki_status": result}

@@ -1,5 +1,6 @@
 import time
-from pydantic import BaseModel
+from domain.generation_schema import KanjiFormat, KanjiLesson, QuizEvaluation
+
 
 def typewriter_print(text: str, delay: float = 0.01):
     """Prints text character by character with a slight delay."""
@@ -13,19 +14,19 @@ def render_kanji(kanji: str):
     typewriter_print(f"KANJI: {kanji}")
     print("-" * 60)
     
-def render_kanji_info(kanji_info: BaseModel):
+def render_kanji_info(kanji_info: KanjiFormat):
     typewriter_print("Kanji Information")
     print("-" * 60)
     typewriter_print(kanji_info.to_polished_string())
     print("-" * 60)
     
-def render_kanji_lesson(kanji_lesson: BaseModel):
+def render_kanji_lesson(kanji_lesson: KanjiLesson):
     typewriter_print("Lesson")
     print("-" * 60)
     typewriter_print(kanji_lesson.to_polished_string())
     print("=" * 60)
     
-def render_quiz_result(quiz_eval: BaseModel):
+def render_quiz_result(quiz_eval: QuizEvaluation):
     print("=" * 60)
     typewriter_print("Feedback:")
     typewriter_print(quiz_eval.feedback)
@@ -33,12 +34,19 @@ def render_quiz_result(quiz_eval: BaseModel):
     typewriter_print("Explanation:")
     typewriter_print(quiz_eval.explanation)
 
-def render_interrupt(interrupt_message: list):
-    if not interrupt_message:
-        return
+def render_anki_result(anki_result:str):
+    print("=" * 60)
+    typewriter_print("ANKI:")
+    typewriter_print(anki_result)
+    print("=" * 60)
 
-    interrupt_value = interrupt_message[0].value
+def render_additional_explanation(explanation:str):
+    print("=" * 60)
+    typewriter_print("Additional Explanation:")
+    typewriter_print(explanation)
+    print("=" * 60)
     
+def render_interrupt(interrupt_value: dict):
     print("\n" + "=" * 60)
     
     if isinstance(interrupt_value, dict):

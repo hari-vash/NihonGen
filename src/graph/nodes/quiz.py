@@ -38,8 +38,6 @@ async def explain_again(state: State,runtime: Runtime[RuntimeContext]):
             )
         ]
     )
-    print("\nAdditional Explanation:")
-    print(message_to_text(response))
 
     return {"messages": [response],"quiz_round": 0}
 
