@@ -32,14 +32,3 @@ async def generate_lesson(state: State,runtime: Runtime[RuntimeContext]):
 
 def advance_kanji(state: State):
     return {"current_index": state["current_index"] + 1}
-
-
-def print_lesson(state: State):
-    print("\n" + "=" * 60)
-    print(f"KANJI: {state['kanji']}")
-    print("=" * 60)
-    print(state["kanji_info"].to_polished_string())
-    print("\nLesson:")
-    print(state["lesson"].to_polished_string())
-    print("=" * 60)
-    return {}

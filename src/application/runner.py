@@ -11,6 +11,7 @@ from mcp.client.stdio import stdio_client
 from graph.builder import build_graph
 from graph.context import RuntimeContext
 from llm.model import build_models
+from application import renderer
 
 
 async def run_interactive_graph(graph,initial_state,config,context):
@@ -20,31 +21,40 @@ async def run_interactive_graph(graph,initial_state,config,context):
 
     result = await graph.ainvoke(initial_state,config=config,context=context)
 
+    last_rendered_kanji = None
+    eval_result = True
     while True:
+        current_kanji = result.get('kanji')
+        
+        if current_kanji and current_kanji != last_rendered_kanji:
+            eval_result = False
+            if result.get('kanji'):
+                renderer.render_kanji(result['kanji'])
+            if result.get('kanji_info'):
+                renderer.render_kanji_info(result['kanji_info'])
+            if result.get('lesson'):
+                renderer.render_kanji_lesson(result['lesson'])
+
+            last_rendered_kanji = current_kanji
+        
+        if result.get("quiz_evaluation") and not eval_result:
+            renderer.render_quiz_result(result['quiz_evaluation'])
+            eval_result = True
+            
         interrupts = result.get("__interrupt__")
+        if interrupts:
+            renderer.render_interrupt(interrupts)
+            
+            user_input = await asyncio.to_thread(input,"\n> ")
 
-        if not interrupts:
-            return result
-
-        interrupt_value = interrupts[0].value
-
-        print("\n" + "=" * 60)
-
-        if isinstance(interrupt_value, dict):
-            print(interrupt_value.get("message", interrupt_value))
+            result = await graph.ainvoke(
+                Command(resume=user_input.strip()),
+                config=config,
+                context=context,
+            )
+        
         else:
-            print(interrupt_value)
-
-        print("=" * 60)
-
-        user_input = await asyncio.to_thread(input,"\n> ")
-
-        result = await graph.ainvoke(
-            Command(resume=user_input.strip()),
-            config=config,
-            context=context,
-        )
-
+            return result
 
 async def run_app():
     load_dotenv()
@@ -73,10 +83,10 @@ async def run_app():
                 graph=graph,
                 initial_state={
                     "file_path": file_path.strip(),
-                    "deck": "Test_Deck1",
+                    "deck": "Test_Deck1"
                 },
                 config=config,
-                context=context,
+                context=context
             )
 
     print("\nProcessing complete.")

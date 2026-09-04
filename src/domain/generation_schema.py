@@ -55,17 +55,17 @@ class KanjiLesson(BaseModel):
         dialogue_str = ""
         for line in self.dialogue:
             dialogue_str += (
-                f"**{line.speaker}**: {line.text.japanese}\n"
+                f"{line.speaker}: {line.text.japanese}\n"
                 f"    ({line.text.romaji})\n"
-                f"    *{line.text.english}*\n\n"
+                f"    {line.text.english}\n\n"
             )
 
         return (
-            f"**Kanji Note**\n{self.kanji_note}\n\n"
-            f"**When to use which reading?**\n"
-            f"- **On'yomi**: {self.usage_guidelines.onyomi_rule}\n"
-            f"- **Kun'yomi**: {self.usage_guidelines.kunyomi_rule}\n\n"
-            f"**Practice Dialogue**\n{dialogue_str}"
+            f"Kanji Note:\n{self.kanji_note}\n\n"
+            f"When to use which reading?\n"
+            f"- On'yomi: {self.usage_guidelines.onyomi_rule}\n"
+            f"- Kun'yomi: {self.usage_guidelines.kunyomi_rule}\n\n"
+            f"Practice Dialogue:\n{dialogue_str}"
         )
     
 class QuizEvaluation(BaseModel):

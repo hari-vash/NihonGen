@@ -61,9 +61,6 @@ def wait_for_answer(state: State):
     question_message = state["messages"][-1]
     question = message_to_text(question_message)
 
-    print("\nQuiz:")
-    print(question)
-
     answer = interrupt({
             "type": "quiz_answer",
             "question": question,
@@ -78,10 +75,5 @@ async def evaluate_quiz_answer(state: State,runtime: Runtime[RuntimeContext]):
     recent_quiz_messages = state["messages"][-2:]
 
     response = await runtime.context.models.quiz_evaluation.ainvoke([prompt,*recent_quiz_messages])
-
-    print("\nFeedback:")
-    print(response.feedback)
-    print("\nExplanation:")
-    print(response.explanation)
 
     return {"quiz_evaluation": response,"messages": [AIMessage(content=(f"Feedback: {response.feedback}\n\n Explanation: {response.explanation}"))]}
