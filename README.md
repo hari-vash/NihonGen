@@ -4,6 +4,18 @@ VERSION 1
 ────────────────────────
 Basic Anki automation
 
+```mermaid
+flowchart TD
+    Start([START]) --> Analyze[ANALYZE KANJI]
+    Analyze --> Lesson[GENERATE LESSON]
+    Analyze --> Print[PRINT]
+    Lesson --> Print
+    Lesson --> Check[CHECK KANJI EXISTS]
+    Check -->|EXISTS| Finish([FINISH])
+    Check -->|MISSING| Create[CREATE FLASHCARD and ADD TO ANKI DECK]
+    Create --> Finish
+```
+
 ✅ COMPLETE
 
 
