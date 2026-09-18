@@ -2,7 +2,7 @@
 
 VERSION 1
 ────────────────────────
-Basic Anki automation
+Basic Anki automation   ✅ COMPLETE
 
 ```mermaid
 flowchart TD
@@ -16,14 +16,9 @@ flowchart TD
     Create --> Finish
 ```
 
-✅ COMPLETE
-
-
-
-
 VERSION 2
 ────────────────────────
-Document → MCP → Kanji processing → Anki
+Document → MCP → Kanji processing → Anki    ✅ COMPLETE
 
 ```mermaid
 flowchart TD
@@ -44,9 +39,6 @@ flowchart TD
     Next -->|YES| GetChunk
     Next -->|NO| Finish([FINISH])
 ```
-
-
-✅ COMPLETE
 
 
 VERSION 3
