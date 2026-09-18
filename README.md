@@ -19,9 +19,32 @@ flowchart TD
 ✅ COMPLETE
 
 
+
+
 VERSION 2
 ────────────────────────
 Document → MCP → Kanji processing → Anki
+
+```mermaid
+flowchart TD
+    Start([START]) --> Init[INITIALIZE DOCUMENT]
+    Init --> GetChunk[GET FIRST CHUNK]
+    GetChunk --> Analyze[ANALYZE KANJI]
+    Analyze --> Print[PRINT]
+    Analyze --> Lesson[GENERATE LESSON]
+    Lesson --> Print
+    Lesson --> Check[CHECK KANJI EXISTS]
+    Check -->|EXISTS| Advance[ADVANCE TO NEXT]
+    Check -->|MISSING| Create[CREATE FLASHCARD and ADD TO ANKI DECK]
+    Create --> Advance
+    Advance --> More{MORE IN CHUNK?}
+    More -->|YES| Select[SELECT NEXT KANJI]
+    Select --> Analyze
+    More -->|NO| Next{NEXT CHUNK?}
+    Next -->|YES| GetChunk
+    Next -->|NO| Finish([FINISH])
+```
+
 
 ✅ COMPLETE
 
