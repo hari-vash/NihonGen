@@ -12,7 +12,7 @@ from graph.builder import build_graph
 from graph.context import RuntimeContext
 from llm.model import build_models
 from application import renderer
-from graph.helpers import message_to_text
+from application.config import Config
 
 async def run_interactive_graph(graph, initial_state, config, context):
     """
@@ -27,13 +27,16 @@ async def run_interactive_graph(graph, initial_state, config, context):
 
     last_rendered_kanji = None
     evaluation_rendered = True
-    previous_message_count = len(result.get("messages", []))
+    last_rendered_explanation = None
+    last_rendered_anki_status = None
 
     while True:
         current_kanji = result.get("kanji")
 
         if current_kanji and current_kanji != last_rendered_kanji:
             evaluation_rendered = False
+            last_rendered_explanation = None
+            last_rendered_anki_status = None
 
             renderer.render_kanji(result["kanji"])
 
@@ -49,8 +52,9 @@ async def run_interactive_graph(graph, initial_state, config, context):
             renderer.render_quiz_result(result["quiz_evaluation"])
             evaluation_rendered = True
 
-        if result.get("anki_status"):
+        if result.get("anki_status") and result["anki_status"] != last_rendered_anki_status:
             renderer.render_anki_result(result["anki_status"])
+            last_rendered_anki_status = result["anki_status"]
 
         interrupts = result.get("__interrupt__")
 
@@ -59,21 +63,14 @@ async def run_interactive_graph(graph, initial_state, config, context):
 
         interrupt_value = interrupts[0].value
 
-        if result.get("user_decision")and interrupt_value.get("type") == "quiz_answer":
-            messages = result.get("messages", [])
-
-            new_messages = messages[previous_message_count:]
-
-            if new_messages:
-                explanation_message = new_messages[0]
-                explanation_content = message_to_text(explanation_message)
-                renderer.render_additional_explanation(explanation_content)
+        if result.get("pending_explanation") and result["pending_explanation"] != last_rendered_explanation:
+            renderer.render_additional_explanation(result["pending_explanation"])
+            last_rendered_explanation = result["pending_explanation"]
 
         renderer.render_interrupt(interrupt_value)
 
         user_input = await asyncio.to_thread(input,"\n> ")
 
-        previous_message_count = len(result.get("messages", []))
         result = await graph.ainvoke(
             Command(resume=user_input.strip()),
             config=config,
@@ -82,6 +79,7 @@ async def run_interactive_graph(graph, initial_state, config, context):
 
 async def run_app():
     load_dotenv()
+    app_config = Config()
 
     src_dir = Path(__file__).resolve().parents[1]
     server_script_path = src_dir / "mcp_server.py"
@@ -107,7 +105,7 @@ async def run_app():
                 graph=graph,
                 initial_state={
                     "file_path": file_path.strip(),
-                    "deck": "Test_Deck1"
+                    "deck": app_config.anki_deck
                 },
                 config=config,
                 context=context

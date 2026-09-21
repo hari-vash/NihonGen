@@ -7,7 +7,7 @@ from mcp.server.fastmcp import FastMCP
 mcp = FastMCP("Japanese Kanji Batcher")
 
 sessions = {}
-CHUNK_SIZE = 4
+CHUNK_SIZE = 15
 
 
 def extract_kanji_chunks(text: str, chunk_size: int) -> list[list[str]]:

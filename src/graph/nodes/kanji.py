@@ -7,7 +7,13 @@ from llm.system_prompts import kanji_generation_prompt,lesson_generation_prompt
 def select_kanji(state: State):
     kanji = state["current_chunk"][state["current_index"]]
 
-    return {"kanji": kanji,"quiz_round": 0}
+    return {
+        "kanji": kanji,
+        "quiz_round": 0,
+        "pending_explanation": None,
+        "quiz_evaluation": None,
+        "anki_status": None,
+    }
 
 
 async def analyze_kanji(state: State,runtime: Runtime[RuntimeContext]):

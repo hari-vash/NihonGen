@@ -39,7 +39,7 @@ async def explain_again(state: State,runtime: Runtime[RuntimeContext]):
         ]
     )
 
-    return {"messages": [response],"quiz_round": 0}
+    return {"messages": [response], "quiz_round": 0, "pending_explanation": message_to_text(response)}
 
 
 async def generate_quiz_question(state: State,runtime: Runtime[RuntimeContext]):
@@ -65,7 +65,7 @@ def wait_for_answer(state: State):
             "kanji": state["kanji"],
     })
 
-    return {"messages": [HumanMessage(content=str(answer))]}
+    return {"messages": [HumanMessage(content=str(answer))], "pending_explanation": None}
 
 
 async def evaluate_quiz_answer(state: State,runtime: Runtime[RuntimeContext]):

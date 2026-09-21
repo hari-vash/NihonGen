@@ -1,5 +1,26 @@
 # NihonGen
 
+> VERSION 3 (Interactive Kanji Tutor) — 🚧 IN PROGRESS. See [`docs/SPEC.md`](docs/SPEC.md) and [`docs/PLAN.md`](docs/PLAN.md).
+
+## Setup
+
+1. Install Anki desktop + the [AnkiConnect](https://ankiweb.net/shared/info/2055492159) add-on (code `2055492159`). Keep Anki open while running.
+2. `cp .env.example .env` and set `GOOGLE_API_KEY` (and `ANKI_DECK` if not `Test_Deck1`).
+3. `uv sync`
+4. Run from `src/` (imports are `from graph...`, not `src.graph...`):
+```bash
+cd src && uv run python -m application.runner
+```
+5. WSL2 users: Anki runs on Windows while code runs in Linux. Enable mirrored networking so `localhost:8765` is shared — in Windows `%USERPROFILE%\.wslconfig`:
+```ini
+[wsl2]
+networkingMode=mirrored
+```
+then `wsl --shutdown` and reopen. Verify with `curl -X POST http://localhost:8765 -d '{"action":"version","version":6}'` (expect `{"result":6,...}`). Keep AnkiConnect's `webBindAddress` at `127.0.0.1`.
+6. Tests: `uv run pytest` (uses `pythonpath=["src"]`).
+
+---
+
 VERSION 1
 ────────────────────────
 Basic Anki automation   ✅ COMPLETE

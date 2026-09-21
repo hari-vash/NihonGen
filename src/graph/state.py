@@ -21,11 +21,12 @@ class State(MessagesState):
 
     # Quiz
     quiz_round: NotRequired[int]
-    quiz_evaluation: NotRequired[QuizEvaluation]
+    quiz_evaluation: NotRequired[QuizEvaluation | None]
 
     # Anki
     exists: NotRequired[bool]
-    anki_status: NotRequired[str]
+    anki_status: NotRequired[str | None]
 
     # Human interaction
     user_decision: NotRequired[str]
+    pending_explanation: NotRequired[str | None]
