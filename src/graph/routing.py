@@ -71,7 +71,7 @@ def route_chunk(state: State):
 
 
 def route_document(state: State):
-    if state["has_more"]:
+    if len(state.get("current_chunk") or []) > 0:
         return "select_kanji"
 
     return "finish"
