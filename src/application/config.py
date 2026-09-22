@@ -8,3 +8,4 @@ class Config(BaseSettings):
 
     anki_deck: str = "Test_Deck1"
     anki_url: str = "http://127.0.0.1:8765"
+    dict_path: str = "data/dictionary.sqlite"

@@ -11,6 +11,7 @@ from mcp.client.stdio import stdio_client
 from graph.builder import build_graph
 from graph.context import RuntimeContext
 from llm.model import build_models
+from infrastructure.dictionary import DictionaryService
 from application import renderer
 from application.config import Config
 
@@ -83,11 +84,15 @@ async def run_app():
 
     src_dir = Path(__file__).resolve().parents[1]
     server_script_path = src_dir / "mcp_server.py"
+    dict_path = Path(app_config.dict_path)
+    if not dict_path.is_absolute():
+        dict_path = src_dir.parent / dict_path
 
     server_params = StdioServerParameters(command=sys.executable,args=[str(server_script_path)])
 
     graph = build_graph()
     models = build_models()
+    dictionary = DictionaryService(dict_path)
 
     thread_id = f"kanji_convo_{uuid.uuid4().hex}"
 
@@ -99,7 +104,7 @@ async def run_app():
         async with ClientSession(read, write) as session:
             await session.initialize()
 
-            context = RuntimeContext(mcp_session=session,models=models)
+            context = RuntimeContext(mcp_session=session,models=models,dictionary=dictionary)
 
             final_state = await run_interactive_graph(
                 graph=graph,

@@ -1,5 +1,24 @@
 from pydantic import BaseModel, Field
 
+class KanjiFacts(BaseModel):
+    """Verified kanji facts from KANJIDIC2, never LLM-authored. See docs/SPEC.md 7.3."""
+
+    kanji: str = Field(description="The kanji character itself (e.g., 水)")
+    onyomi: list[str] = Field(description="On'yomi readings in katakana (e.g., ['スイ'])")
+    kunyomi: list[str] = Field(description="Kunyomi readings in hiragana (e.g., ['みず'])")
+    meanings: list[str] = Field(description="English meanings (e.g., ['water'])")
+    stroke_count: int | None = Field(default=None, description="Stroke count from KANJIDIC2")
+    grade: int | None = Field(default=None, description="School grade from KANJIDIC2, None if ungraded")
+
+    def to_polished_string(self) -> str:
+        return (
+            f"On'yomi: {', '.join(self.onyomi) or '—'}\n"
+            f"Kunyomi: {', '.join(self.kunyomi) or '—'}\n"
+            f"Meanings: {', '.join(self.meanings) or '—'}\n"
+            f"Strokes: {self.stroke_count if self.stroke_count is not None else '—'}"
+            f" | Grade: {self.grade if self.grade is not None else '—'}"
+        )
+
 class KanjiExample(BaseModel):
     word: str = Field(description="The example word containing the kanji (e.g., 火山)")
     kana: str = Field(description="The reading in hiragana or katakana (e.g., かざん)")
