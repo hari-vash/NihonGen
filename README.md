@@ -18,6 +18,15 @@ networkingMode=mirrored
 ```
 then `wsl --shutdown` and reopen. Verify with `curl -X POST http://localhost:8765 -d '{"action":"version","version":6}'` (expect `{"result":6,...}`). Keep AnkiConnect's `webBindAddress` at `127.0.0.1`.
 6. Tests: `uv run pytest` (uses `pythonpath=["src"]`).
+7. Dictionary index (one-time setup): download KANJIDIC2 (`kanjidic2.xml.gz`) and JMdict (`JMdict_e.gz`) from the [EDRDG site](https://www.edrdg.org) into `data/`, unzip, then build the local index:
+```bash
+cd src && uv run python -m infrastructure.build_dictionary
+```
+This creates `data/dictionary.sqlite` (gitignored). Kanji facts come from this DB, never from the LLM.
+
+## Dictionary data
+
+Kanji readings, meanings, stroke counts and example words come from [KANJIDIC2 and JMdict](https://www.edrdg.org), (c) Electronic Dictionary Research and Development Group, used under CC-BY-SA. The raw XML and built index live only in local `data/` and are not committed.
 
 ---
 
