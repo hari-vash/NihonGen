@@ -214,6 +214,14 @@ tempCodeRunnerFile.py
 # PyPI configuration file
 .pypirc
 
+# NihonGen dictionary data (EDRDG XML + built index are reproducible locally)
+data/*.sqlite
+data/*.sqlite-journal
+data/*.xml
+data/*.gz
+data/JMdict_e
+!data/.gitkeep
+
 # Marimo
 marimo/_static/
 marimo/_lsp/
