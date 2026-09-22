@@ -1,19 +1,37 @@
-def lesson_generation_prompt(kanji: str,onyomi: str,kunyomi: str,kanji_meaning: str) -> str:
+from domain.generation_schema import KanjiFacts
+
+
+def lesson_generation_prompt(kanji: str, facts: KanjiFacts) -> str:
+    onyomi = ", ".join(facts.onyomi)
+    kunyomi = ", ".join(facts.kunyomi)
+    meanings = "; ".join(facts.meanings)
     return f"""
         You are an experienced Japanese language teacher.
 
         Create a lesson for the following Kanji.
 
         Kanji: {kanji}
-        Meaning: {kanji_meaning}
-        On'yomi: {onyomi}
-        Kun'yomi: {kunyomi}
+        Verified meanings: {meanings}
+        Verified On'yomi: {onyomi}
+        Verified Kun'yomi: {kunyomi}
+
+        These readings and meanings are verified dictionary facts.
+        Use ONLY these readings and meanings. Never invent readings,
+        meanings, or vocabulary.
+
+        Every example word MUST contain the target Kanji.
+
+        Do NOT output romaji. Write Japanese text and English
+        translations only.
+
+        Present any mnemonic clearly labelled as a memory aid,
+        not as a historical or etymological fact.
 
         Explain:
         - when the On'yomi reading is normally used
         - when the Kun'yomi reading is normally used
         - important usage patterns
-        - practical vocabulary
+        - practical vocabulary (each word containing the Kanji)
         - a small natural Japanese conversation using the Kanji
 
         The lesson must be accurate, useful for a Japanese learner,

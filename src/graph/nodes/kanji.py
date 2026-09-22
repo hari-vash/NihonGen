@@ -25,12 +25,9 @@ def dictionary_lookup(state: State, runtime: Runtime[RuntimeContext]):
 
 
 async def generate_lesson(state: State,runtime: Runtime[RuntimeContext]):
-    facts = state["dictionary_facts"]
     prompt = lesson_generation_prompt(
         kanji=state["kanji"],
-        onyomi=", ".join(facts.onyomi),
-        kunyomi=", ".join(facts.kunyomi),
-        kanji_meaning="; ".join(facts.meanings),
+        facts=state["dictionary_facts"],
     )
     response = await runtime.context.models.lesson.ainvoke(prompt)
 
