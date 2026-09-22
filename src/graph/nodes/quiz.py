@@ -31,7 +31,7 @@ async def explain_again(state: State,runtime: Runtime[RuntimeContext]):
                 content=(
                     f"Kanji: {state['kanji']}\n\n"
                     f"Kanji information:\n"
-                    f"{state['kanji_info'].model_dump_json(indent=2)}\n\n"
+                    f"{state['dictionary_facts'].model_dump_json(indent=2)}\n\n"
                     f"Lesson:\n"
                     f"{state['lesson'].model_dump_json(indent=2)}"
                 )

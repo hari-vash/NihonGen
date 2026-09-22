@@ -1,5 +1,5 @@
 import time
-from domain.generation_schema import KanjiFormat, KanjiLesson, QuizEvaluation
+from domain.generation_schema import KanjiFacts, KanjiLesson, QuizEvaluation
 
 
 def typewriter_print(text: str, delay: float = 0.01):
@@ -14,10 +14,10 @@ def render_kanji(kanji: str):
     typewriter_print(f"KANJI: {kanji}")
     print("-" * 60)
     
-def render_kanji_info(kanji_info: KanjiFormat):
+def render_kanji_info(facts: KanjiFacts):
     typewriter_print("Kanji Information")
     print("-" * 60)
-    typewriter_print(kanji_info.to_polished_string())
+    typewriter_print(facts.to_polished_string())
     print("-" * 60)
     
 def render_kanji_lesson(kanji_lesson: KanjiLesson):

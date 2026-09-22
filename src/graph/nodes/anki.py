@@ -21,16 +21,16 @@ def approve_update(state: State):
 
 
 def update_flashcard(state: State):
-    kanji_info = state["kanji_info"]
+    facts = state["dictionary_facts"]
     result = update_kanji_flashcard.invoke(
         {
             "kanji": state["kanji"],
-            "onyomi": kanji_info.onyomi,
-            "kunyomi": kanji_info.kunyomi,
-            "kanji_meaning": kanji_info.kanji_meaning,
+            "onyomi": ", ".join(facts.onyomi),
+            "kunyomi": ", ".join(facts.kunyomi),
+            "kanji_meaning": "; ".join(facts.meanings),
             "deck": state["deck"],
-            "onyomi_examples": kanji_info.onyomi_examples,
-            "kunyomi_examples": kanji_info.kunyomi_examples,
+            "onyomi_examples": [],
+            "kunyomi_examples": [],
             "lesson": state["lesson"],
         }
     )
@@ -46,17 +46,17 @@ def approve_create(state: State):
 
 
 def create_flashcard(state: State):
-    kanji_info = state["kanji_info"]
+    facts = state["dictionary_facts"]
 
     result = create_kanji_flashcards.invoke(
         {
             "kanji": state["kanji"],
-            "onyomi": kanji_info.onyomi,
-            "kunyomi": kanji_info.kunyomi,
-            "kanji_meaning": kanji_info.kanji_meaning,
+            "onyomi": ", ".join(facts.onyomi),
+            "kunyomi": ", ".join(facts.kunyomi),
+            "kanji_meaning": "; ".join(facts.meanings),
             "deck": state["deck"],
-            "onyomi_examples": kanji_info.onyomi_examples,
-            "kunyomi_examples": kanji_info.kunyomi_examples,
+            "onyomi_examples": [],
+            "kunyomi_examples": [],
             "lesson": state["lesson"],
         }
     )

@@ -1,20 +1,3 @@
-def kanji_generation_prompt(kanji: str) -> str:
-    return f"""
-        Generate accurate Japanese language information for the following Kanji.
-
-        Kanji: {kanji}
-
-        Provide:
-        - On'yomi readings
-        - Kun'yomi readings
-        - English meaning
-        - Practical vocabulary examples for the relevant readings
-
-        Use standard Japanese usage.
-        Do not invent readings, vocabulary, or meanings.
-    """.strip()
-
-
 def lesson_generation_prompt(kanji: str,onyomi: str,kunyomi: str,kanji_meaning: str) -> str:
     return f"""
         You are an experienced Japanese language teacher.

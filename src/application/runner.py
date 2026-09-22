@@ -41,8 +41,8 @@ async def run_interactive_graph(graph, initial_state, config, context):
 
             renderer.render_kanji(result["kanji"])
 
-            if result.get("kanji_info"):
-                renderer.render_kanji_info(result["kanji_info"])
+            if result.get("dictionary_facts"):
+                renderer.render_kanji_info(result["dictionary_facts"])
 
             if result.get("lesson"):
                 renderer.render_kanji_lesson(result["lesson"])

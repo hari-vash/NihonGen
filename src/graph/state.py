@@ -1,7 +1,7 @@
 from langgraph.graph import MessagesState
 from typing_extensions import NotRequired
 
-from domain.generation_schema import KanjiFormat, KanjiLesson, QuizEvaluation
+from domain.generation_schema import KanjiFacts, KanjiLesson, QuizEvaluation
 
 class State(MessagesState):
     # Input / document
@@ -16,7 +16,7 @@ class State(MessagesState):
 
     # Current Kanji
     kanji: NotRequired[str]
-    kanji_info: NotRequired[KanjiFormat]
+    dictionary_facts: NotRequired[KanjiFacts | None]
     lesson: NotRequired[KanjiLesson]
 
     # Quiz

@@ -2,7 +2,7 @@ from langgraph.runtime import Runtime
 
 from graph.context import RuntimeContext
 from graph.state import State
-from llm.system_prompts import kanji_generation_prompt,lesson_generation_prompt
+from llm.system_prompts import lesson_generation_prompt
 
 def select_kanji(state: State):
     kanji = state["current_chunk"][state["current_index"]]
@@ -13,23 +13,24 @@ def select_kanji(state: State):
         "pending_explanation": None,
         "quiz_evaluation": None,
         "anki_status": None,
+        "dictionary_facts": None,
     }
 
 
-async def analyze_kanji(state: State,runtime: Runtime[RuntimeContext]):
-    prompt = kanji_generation_prompt(state["kanji"])
-    response = await runtime.context.models.kanji.ainvoke(prompt)
+def dictionary_lookup(state: State, runtime: Runtime[RuntimeContext]):
+    """Verified kanji facts from the local dictionary. No LLM call."""
+    facts = runtime.context.dictionary.get_kanji(state["kanji"])
 
-    return {"kanji_info": response}
+    return {"dictionary_facts": facts}
 
 
 async def generate_lesson(state: State,runtime: Runtime[RuntimeContext]):
-    kanji_info = state["kanji_info"]
+    facts = state["dictionary_facts"]
     prompt = lesson_generation_prompt(
         kanji=state["kanji"],
-        onyomi=kanji_info.onyomi,
-        kunyomi=kanji_info.kunyomi,
-        kanji_meaning=kanji_info.kanji_meaning,
+        onyomi=", ".join(facts.onyomi),
+        kunyomi=", ".join(facts.kunyomi),
+        kanji_meaning="; ".join(facts.meanings),
     )
     response = await runtime.context.models.lesson.ainvoke(prompt)
 
