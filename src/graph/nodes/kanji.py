@@ -14,6 +14,8 @@ def select_kanji(state: State):
         "quiz_evaluation": None,
         "anki_status": None,
         "dictionary_facts": None,
+        "verify_retries": 0,
+        "verify_feedback": None,
     }
 
 
@@ -28,6 +30,7 @@ async def generate_lesson(state: State,runtime: Runtime[RuntimeContext]):
     prompt = lesson_generation_prompt(
         kanji=state["kanji"],
         facts=state["dictionary_facts"],
+        feedback=state.get("verify_feedback"),
     )
     response = await runtime.context.models.lesson.ainvoke(prompt)
 

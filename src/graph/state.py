@@ -18,6 +18,8 @@ class State(MessagesState):
     kanji: NotRequired[str]
     dictionary_facts: NotRequired[KanjiFacts | None]
     lesson: NotRequired[KanjiLesson]
+    verify_retries: NotRequired[int]
+    verify_feedback: NotRequired[str | None]
 
     # Quiz
     quiz_round: NotRequired[int]

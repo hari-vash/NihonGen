@@ -5,7 +5,8 @@ from graph.nodes.anki import approve_create,approve_update,check_anki,create_fla
 from graph.nodes.document import get_next_chunk, initialize_document
 from graph.nodes.kanji import advance_kanji,dictionary_lookup,generate_lesson,select_kanji
 from graph.nodes.quiz import evaluate_quiz_answer,explain_again,generate_quiz_question,quiz_readiness,wait_for_answer
-from graph.routing import route_anki,route_chunk,route_create_approval,route_document,route_quiz,route_quiz_readiness,route_update_approval
+from graph.nodes.verify import verify_lesson
+from graph.routing import route_anki,route_chunk,route_create_approval,route_document,route_quiz,route_quiz_readiness,route_update_approval,route_verification
 from graph.state import State
 from graph.checkpointer import create_checkpointer
 
@@ -21,16 +22,23 @@ def build_graph(*, checkpointer=None):
     builder.add_node("select_kanji", select_kanji)
     builder.add_node("dictionary_lookup", dictionary_lookup)
     builder.add_node("generate_lesson", generate_lesson)
+    builder.add_node("verify_lesson", verify_lesson)
 
     builder.add_edge(START, "initialize_document")
     builder.add_edge("initialize_document", "select_kanji")
     builder.add_edge("select_kanji", "dictionary_lookup")
     builder.add_edge("dictionary_lookup", "generate_lesson")
+    builder.add_edge("generate_lesson", "verify_lesson")
+    builder.add_conditional_edges("verify_lesson",
+        route_verification,
+        {
+            "verified": "quiz_readiness",
+            "retry": "generate_lesson",
+        })
 
     # Quiz readiness
     builder.add_node("quiz_readiness", quiz_readiness)
     builder.add_node("explain_again", explain_again)
-    builder.add_edge("generate_lesson", "quiz_readiness")
     builder.add_conditional_edges("quiz_readiness",
         route_quiz_readiness,
         {

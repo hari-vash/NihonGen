@@ -1,10 +1,15 @@
 from domain.generation_schema import KanjiFacts
 
 
-def lesson_generation_prompt(kanji: str, facts: KanjiFacts) -> str:
+def lesson_generation_prompt(kanji: str, facts: KanjiFacts, feedback: str | None = None) -> str:
     onyomi = ", ".join(facts.onyomi)
     kunyomi = ", ".join(facts.kunyomi)
     meanings = "; ".join(facts.meanings)
+    retry_section = (
+        f"\n\nPrevious attempt failed verification: {feedback} "
+        "Replace every rejected word with a common JMdict word containing the kanji."
+        if feedback else ""
+    )
     return f"""
         You are an experienced Japanese language teacher.
 
@@ -23,7 +28,7 @@ def lesson_generation_prompt(kanji: str, facts: KanjiFacts) -> str:
 
         Do NOT output romaji. Write Japanese text and English
         translations only.
-
+{retry_section}
         Present any mnemonic clearly labelled as a memory aid,
         not as a historical or etymological fact.
 

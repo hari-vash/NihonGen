@@ -75,3 +75,10 @@ def route_document(state: State):
         return "select_kanji"
 
     return "finish"
+
+
+def route_verification(state: State):
+    if state.get("verify_feedback"):
+        return "retry"
+
+    return "verified"
