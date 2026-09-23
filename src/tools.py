@@ -1,6 +1,11 @@
 from langchain.tools import tool
-from domain.generation_schema import KanjiExample,KanjiLesson
+from domain.generation_schema import KanjiExample,KanjiLesson,VerifiedWord
 from connect_anki import request_anki
+
+
+def format_verified_words(words: list[VerifiedWord]) -> str:
+    """Pure render of verified words for card backs. Offline-testable."""
+    return "\n".join(f"- {w}" for w in words)
 
 @tool("check_kanji_exists", description="Search Anki collection(deck) to see if a note for this specific kanji already exists.")
 def check_kanji_exists(kanji: str, deck:str) -> bool:
@@ -18,7 +23,8 @@ def create_kanji_flashcards(
     kanji_meaning: str,
     deck:str,
     onyomi_examples: list[KanjiExample],
-    kunyomi_examples: list[KanjiExample]
+    kunyomi_examples: list[KanjiExample],
+    words: list[VerifiedWord] | None = None,
 ) -> str:
 
     formatted_onyomi = [f"{ex.word} [{ex.kana}] ({ex.romaji}) - {ex.meaning}" for ex in onyomi_examples]
@@ -26,6 +32,8 @@ def create_kanji_flashcards(
     
     onyomi_ex_str = ", ".join(formatted_onyomi)
     kunyomi_ex_str = ", ".join(formatted_kunyomi)
+
+    verified_str = format_verified_words(words or [])
     
     polished_text = (
         f"On'yomi: {onyomi}\n"
@@ -33,7 +41,8 @@ def create_kanji_flashcards(
         f"Kanji Meaning: {kanji_meaning}\n\n"
         f"Readings and Examples:\n"
         f"On'yomi: {onyomi_ex_str}\n"
-        f"Kunyomi: {kunyomi_ex_str}"
+        f"Kunyomi: {kunyomi_ex_str}\n\n"
+        f"Example Words (verified):\n{verified_str or '-'}"
     )
 
     html_back = polished_text.replace('\n', '<br>')
@@ -67,6 +76,7 @@ def update_kanji_flashcard(
     onyomi_examples: list[KanjiExample],
     kunyomi_examples: list[KanjiExample],
     lesson: KanjiLesson,
+    words: list[VerifiedWord] | None = None,
 ) -> str:
 
     formatted_onyomi = [f"{ex.word} [{ex.kana}] ({ex.romaji}) - {ex.meaning}" for ex in onyomi_examples]
@@ -77,6 +87,7 @@ def update_kanji_flashcard(
     kunyomi_ex_str = ", ".join(formatted_kunyomi)
 
     lesson_text = lesson.to_polished_string()
+    verified_str = format_verified_words(words or [])
 
     polished_text = (
         f"On'yomi: {onyomi}\n"
@@ -85,6 +96,7 @@ def update_kanji_flashcard(
         f"Readings and Examples:\n"
         f"On'yomi: {onyomi_ex_str}\n"
         f"Kun'yomi: {kunyomi_ex_str}\n\n"
+        f"Example Words (verified):\n{verified_str or '-'}\n\n"
         f"────────────────────\n\n"
         f"{lesson_text}"
     )

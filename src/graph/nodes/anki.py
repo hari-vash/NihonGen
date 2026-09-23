@@ -31,6 +31,7 @@ def update_flashcard(state: State):
             "deck": state["deck"],
             "onyomi_examples": [],
             "kunyomi_examples": [],
+            "words": [w.model_dump() for w in state["lesson"].words],
             "lesson": state["lesson"],
         }
     )
@@ -57,6 +58,7 @@ def create_flashcard(state: State):
             "deck": state["deck"],
             "onyomi_examples": [],
             "kunyomi_examples": [],
+            "words": [w.model_dump() for w in state["lesson"].words],
             "lesson": state["lesson"],
         }
     )
