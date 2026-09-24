@@ -52,12 +52,17 @@ async def generate_quiz_question(state: State,runtime: Runtime[RuntimeContext]):
 
     response = await runtime.context.models.llm.ainvoke(prompt)
 
-    return {"messages": [response],"quiz_round": round_number}
+    return {"messages": [response],"quiz_round": round_number,"current_question_text": message_to_text(response)}
+
+
+def current_question(state: State) -> str:
+    """The question to (re-)ask. Stored text wins so a tutor detour never
+    turns the tutor's answer into the question (T6)."""
+    return state.get("current_question_text") or message_to_text(state["messages"][-1])
 
 
 def wait_for_answer(state: State):
-    question_message = state["messages"][-1]
-    question = message_to_text(question_message)
+    question = current_question(state)
 
     answer = interrupt({
             "type": "quiz_answer",

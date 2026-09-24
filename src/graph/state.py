@@ -23,6 +23,7 @@ class State(MessagesState):
 
     # Quiz
     quiz_round: NotRequired[int]
+    current_question_text: NotRequired[str | None]
     quiz_evaluation: NotRequired[QuizEvaluation | None]
 
     # Anki
