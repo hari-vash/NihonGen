@@ -11,7 +11,7 @@ def quiz_readiness(state: State):
             "message": (f"Are you ready for a quiz testing your knowledge about the Kanji {state['kanji']}?")}
         )
 
-    return {"user_decision": str(decision)}
+    return {"user_decision": str(decision), "last_reply": str(decision)}
 
 
 async def explain_again(state: State,runtime: Runtime[RuntimeContext]):
