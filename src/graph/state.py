@@ -32,5 +32,6 @@ class State(MessagesState):
     # Human interaction
     user_decision: NotRequired[str]
     last_reply: NotRequired[str | None]
+    reply_prompt: NotRequired[str | None]
     reply_intent: NotRequired[str | None]
     pending_explanation: NotRequired[str | None]

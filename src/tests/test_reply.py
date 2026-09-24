@@ -1,6 +1,11 @@
+import asyncio
+
 import pytest
 
+from domain.generation_schema import ReplyIntent
 from graph.helpers import PROMPT_LABELS, normalize_yes_no, prepass_reply
+from graph.nodes.reply import classify_label
+from llm.system_prompts import reply_classifier_prompt
 
 
 def test_normalize_yes_no_unchanged():
@@ -53,3 +58,44 @@ def test_prompt_labels_match_spec():
 )
 def test_prepass_reply(text, prompt, expected):
     assert prepass_reply(text, prompt) == expected
+
+
+def _fake_classifier(label, reason=""):
+    class Fake:
+        def __init__(self):
+            self.calls = 0
+
+        async def ainvoke(self, prompt):
+            self.calls += 1
+            return ReplyIntent(label=label, reason=reason)
+
+    return Fake()
+
+
+def test_classify_label_prepass_short_circuits_without_llm():
+    for text, prompt, expected in [
+        ("absolutely", "anki_approval", "approve"),
+        ("stop", "quiz_answer", "stop"),
+        ("idk", "quiz_answer", "dont_know"),
+    ]:
+        fake = _fake_classifier("unclear")
+        assert asyncio.run(classify_label(prompt, text, fake)) == expected
+        assert fake.calls == 0
+
+
+def test_classify_label_rogue_coerces_to_unclear():
+    fake = _fake_classifier("nuke_the_deck")
+    assert asyncio.run(classify_label("anki_approval", "ok but only the readings", fake)) == "unclear"
+    assert fake.calls == 1
+
+
+def test_classify_label_accepts_valid_llm_label():
+    fake = _fake_classifier("unclear", reason="conditional approval")
+    assert asyncio.run(classify_label("anki_approval", "ok but only the readings", fake)) == "unclear"
+
+
+def test_classifier_prompt_lists_allowed_labels():
+    for prompt_kind, labels in PROMPT_LABELS.items():
+        prompt = reply_classifier_prompt(prompt_kind, "maybe?")
+        for label in labels:
+            assert label in prompt

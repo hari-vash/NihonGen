@@ -11,7 +11,7 @@ def quiz_readiness(state: State):
             "message": (f"Are you ready for a quiz testing your knowledge about the Kanji {state['kanji']}?")}
         )
 
-    return {"user_decision": str(decision), "last_reply": str(decision)}
+    return {"user_decision": str(decision), "last_reply": str(decision), "reply_prompt": "quiz_readiness"}
 
 
 async def explain_again(state: State,runtime: Runtime[RuntimeContext]):
@@ -65,7 +65,7 @@ def wait_for_answer(state: State):
             "kanji": state["kanji"],
     })
 
-    return {"messages": [HumanMessage(content=str(answer))], "pending_explanation": None}
+    return {"messages": [HumanMessage(content=str(answer))], "pending_explanation": None, "last_reply": str(answer), "reply_prompt": "quiz_answer"}
 
 
 async def evaluate_quiz_answer(state: State,runtime: Runtime[RuntimeContext]):

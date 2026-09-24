@@ -17,6 +17,7 @@ def select_kanji(state: State):
         "verify_retries": 0,
         "verify_feedback": None,
         "last_reply": None,
+        "reply_prompt": None,
         "reply_intent": None,
     }
 
