@@ -5,8 +5,10 @@ from graph.nodes.anki import approve_create,approve_update,check_anki,create_fla
 from graph.nodes.document import get_next_chunk, initialize_document
 from graph.nodes.kanji import advance_kanji,dictionary_lookup,generate_lesson,select_kanji
 from graph.nodes.quiz import evaluate_quiz_answer,explain_again,generate_quiz_question,quiz_readiness,wait_for_answer
+from graph.nodes.reply import classify_reply
+from graph.nodes.tutor import tutor
 from graph.nodes.verify import verify_lesson
-from graph.routing import route_anki,route_chunk,route_create_approval,route_document,route_quiz,route_quiz_readiness,route_update_approval,route_verification
+from graph.routing import route_anki,route_chunk,route_document,route_quiz,route_reply_intent,route_tutor_source,route_verification
 from graph.state import State
 from graph.checkpointer import create_checkpointer
 
@@ -39,12 +41,35 @@ def build_graph(*, checkpointer=None):
     # Quiz readiness
     builder.add_node("quiz_readiness", quiz_readiness)
     builder.add_node("explain_again", explain_again)
-    builder.add_conditional_edges("quiz_readiness",
-        route_quiz_readiness,
+    builder.add_node("classify_reply", classify_reply)
+    builder.add_node("tutor", tutor)
+    builder.add_edge("quiz_readiness", "classify_reply")
+    builder.add_edge("wait_for_answer", "classify_reply")
+    builder.add_edge("approve_create", "classify_reply")
+    builder.add_edge("approve_update", "classify_reply")
+    builder.add_conditional_edges("classify_reply",
+        route_reply_intent,
         {
-            "ready": "generate_quiz_question",
-            "needs_explanation": "explain_again",
-            "clarify": "quiz_readiness",
+            "generate_quiz_question": "generate_quiz_question",
+            "explain_again": "explain_again",
+            "evaluate_quiz_answer": "evaluate_quiz_answer",
+            "advance_kanji": "advance_kanji",
+            "create_flashcard": "create_flashcard",
+            "update_flashcard": "update_flashcard",
+            "quiz_readiness": "quiz_readiness",
+            "wait_for_answer": "wait_for_answer",
+            "approve_create": "approve_create",
+            "approve_update": "approve_update",
+            "tutor": "tutor",
+            "end": END,
+        })
+    builder.add_conditional_edges("tutor",
+        route_tutor_source,
+        {
+            "quiz_readiness": "quiz_readiness",
+            "wait_for_answer": "wait_for_answer",
+            "approve_create": "approve_create",
+            "approve_update": "approve_update",
         })
     builder.add_edge("explain_again", "generate_quiz_question")
 
@@ -53,7 +78,6 @@ def build_graph(*, checkpointer=None):
     builder.add_node("wait_for_answer", wait_for_answer)
     builder.add_node("evaluate_quiz_answer", evaluate_quiz_answer)
     builder.add_edge("generate_quiz_question", "wait_for_answer")
-    builder.add_edge("wait_for_answer", "evaluate_quiz_answer")
     builder.add_conditional_edges("evaluate_quiz_answer",
         route_quiz,
         {
@@ -74,21 +98,7 @@ def build_graph(*, checkpointer=None):
             "update_approval": "approve_update",
             "create_approval": "approve_create",
         })
-    builder.add_conditional_edges("approve_update",
-        route_update_approval,
-        {
-            "update": "update_flashcard",
-            "skip": "advance_kanji",
-            "clarify": "approve_update",
-        })
     builder.add_edge("update_flashcard", "advance_kanji")
-    builder.add_conditional_edges("approve_create",
-        route_create_approval,
-        {
-            "create": "create_flashcard",
-            "skip": "advance_kanji",
-            "clarify": "approve_create",
-        })
     builder.add_edge("create_flashcard", "advance_kanji")
 
     # Document progression

@@ -17,7 +17,7 @@ def approve_update(state: State):
             )
         })
 
-    return {"user_decision": str(decision), "last_reply": str(decision), "reply_prompt": "anki_approval"}
+    return {"last_reply": str(decision), "reply_prompt": "anki_approval"}
 
 
 def update_flashcard(state: State):
@@ -43,7 +43,7 @@ def approve_create(state: State):
     decision = interrupt({"type": "anki_create_approval",
             "message": f"Do you want to add the Kanji {state['kanji']} to the Anki deck '{state['deck']}'?"})
 
-    return {"user_decision": str(decision), "last_reply": str(decision), "reply_prompt": "anki_approval"}
+    return {"last_reply": str(decision), "reply_prompt": "anki_approval"}
 
 
 def create_flashcard(state: State):

@@ -1,20 +1,58 @@
-from graph.helpers import normalize_yes_no
 from graph.state import State
 
 
 MAX_QUIZ_ROUNDS = 6
 
 
-def route_quiz_readiness(state: State):
-    decision = normalize_yes_no(state["user_decision"])
+def _approval_target(state: State):
+    return "approve_update" if state.get("exists") else "approve_create"
 
-    if decision == "approve":
-        return "ready"
 
-    if decision == "reject":
-        return "needs_explanation"
+def route_reply_intent(state: State):
+    """Single router for all classified replies. Reads (reply_prompt, reply_intent)."""
+    prompt = state.get("reply_prompt")
+    intent = state.get("reply_intent")
 
-    return "clarify"
+    if prompt == "quiz_readiness":
+        return {
+            "ready": "generate_quiz_question",
+            "not_ready": "explain_again",
+            "question": "tutor",
+            "stop": "end",
+            "unclear": "quiz_readiness",
+        }.get(intent, "quiz_readiness")
+
+    if prompt == "quiz_answer":
+        return {
+            "answer": "evaluate_quiz_answer",
+            "dont_know": "evaluate_quiz_answer",
+            "question": "tutor",
+            "skip_kanji": "advance_kanji",
+            "stop": "end",
+            "unclear": "wait_for_answer",
+        }.get(intent, "wait_for_answer")
+
+    if prompt == "anki_approval":
+        if intent == "approve":
+            return "update_flashcard" if state.get("exists") else "create_flashcard"
+        return {
+            "decline": "advance_kanji",
+            "question": "tutor",
+            "stop": "end",
+            "unclear": _approval_target(state),
+        }.get(intent, _approval_target(state))
+
+    return "end"
+
+
+def route_tutor_source(state: State):
+    """Send the tutor back to the prompt that asked the question."""
+    prompt = state.get("reply_prompt")
+    if prompt == "quiz_answer":
+        return "wait_for_answer"
+    if prompt == "anki_approval":
+        return _approval_target(state)
+    return "quiz_readiness"
 
 
 def route_quiz(state: State):
@@ -34,30 +72,6 @@ def route_anki(state: State):
         return "update_approval"
 
     return "create_approval"
-
-
-def route_update_approval(state: State):
-    decision = normalize_yes_no(state["user_decision"])
-
-    if decision == "approve":
-        return "update"
-
-    if decision == "reject":
-        return "skip"
-
-    return "clarify"
-
-
-def route_create_approval(state: State):
-    decision = normalize_yes_no(state["user_decision"])
-
-    if decision == "approve":
-        return "create"
-
-    if decision == "reject":
-        return "skip"
-
-    return "clarify"
 
 
 def route_chunk(state: State):

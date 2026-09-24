@@ -30,7 +30,6 @@ class State(MessagesState):
     anki_status: NotRequired[str | None]
 
     # Human interaction
-    user_decision: NotRequired[str]
     last_reply: NotRequired[str | None]
     reply_prompt: NotRequired[str | None]
     reply_intent: NotRequired[str | None]

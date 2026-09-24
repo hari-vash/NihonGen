@@ -3,15 +3,10 @@ import asyncio
 import pytest
 
 from domain.generation_schema import ReplyIntent
-from graph.helpers import PROMPT_LABELS, normalize_yes_no, prepass_reply
+from graph.helpers import PROMPT_LABELS, prepass_reply
 from graph.nodes.reply import classify_label
+from graph.routing import route_reply_intent, route_tutor_source
 from llm.system_prompts import reply_classifier_prompt
-
-
-def test_normalize_yes_no_unchanged():
-    assert normalize_yes_no("absolutely") == "approve"
-    assert normalize_yes_no("nope") == "reject"
-    assert normalize_yes_no("ok but only the readings") == "clarify"
 
 
 def test_prompt_labels_match_spec():
@@ -99,3 +94,49 @@ def test_classifier_prompt_lists_allowed_labels():
         prompt = reply_classifier_prompt(prompt_kind, "maybe?")
         for label in labels:
             assert label in prompt
+
+
+@pytest.mark.parametrize(
+    "prompt,intent,exists,expected",
+    [
+        # readiness
+        ("quiz_readiness", "ready", False, "generate_quiz_question"),
+        ("quiz_readiness", "not_ready", False, "explain_again"),
+        ("quiz_readiness", "question", False, "tutor"),
+        ("quiz_readiness", "stop", False, "end"),
+        ("quiz_readiness", "unclear", False, "quiz_readiness"),
+        # answer
+        ("quiz_answer", "answer", False, "evaluate_quiz_answer"),
+        ("quiz_answer", "dont_know", False, "evaluate_quiz_answer"),
+        ("quiz_answer", "question", False, "tutor"),
+        ("quiz_answer", "skip_kanji", False, "advance_kanji"),
+        ("quiz_answer", "stop", False, "end"),
+        ("quiz_answer", "unclear", False, "wait_for_answer"),
+        # approval, new and existing cards
+        ("anki_approval", "approve", False, "create_flashcard"),
+        ("anki_approval", "approve", True, "update_flashcard"),
+        ("anki_approval", "decline", False, "advance_kanji"),
+        ("anki_approval", "decline", True, "advance_kanji"),
+        ("anki_approval", "question", False, "tutor"),
+        ("anki_approval", "stop", True, "end"),
+        # T8: unclear re-asks the same approval gate
+        ("anki_approval", "unclear", False, "approve_create"),
+        ("anki_approval", "unclear", True, "approve_update"),
+    ],
+)
+def test_route_reply_intent(prompt, intent, exists, expected):
+    state = {"reply_prompt": prompt, "reply_intent": intent, "exists": exists}
+    assert route_reply_intent(state) == expected
+
+
+@pytest.mark.parametrize(
+    "prompt,exists,expected",
+    [
+        ("quiz_readiness", False, "quiz_readiness"),
+        ("quiz_answer", False, "wait_for_answer"),
+        ("anki_approval", False, "approve_create"),
+        ("anki_approval", True, "approve_update"),
+    ],
+)
+def test_route_tutor_source(prompt, exists, expected):
+    assert route_tutor_source({"reply_prompt": prompt, "exists": exists}) == expected
