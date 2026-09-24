@@ -1,0 +1,20 @@
+{"text": "yes", "expected": "approve"}
+{"text": "absolutely", "expected": "approve"}
+{"text": "go ahead", "expected": "approve"}
+{"text": "yes please", "expected": "approve"}
+{"text": "do it", "expected": "approve"}
+{"text": "no", "expected": "decline"}
+{"text": "nope", "expected": "decline"}
+{"text": "not yet", "expected": "decline"}
+{"text": "is the reading correct?", "expected": "question"}
+{"text": "what will the back show?", "expected": "question"}
+{"text": "help", "expected": "question"}
+{"text": "stop", "expected": "stop"}
+{"text": "quit", "expected": "stop"}
+{"text": "ok but only the readings", "expected": "unclear"}
+{"text": "yes except the dialogue", "expected": "unclear"}
+{"text": "maybe", "expected": "unclear"}
+{"text": "later", "expected": "unclear"}
+{"text": "hmm", "expected": "unclear"}
+{"text": "yees", "expected": "unclear"}
+{"text": "approve-ish", "expected": "unclear"}

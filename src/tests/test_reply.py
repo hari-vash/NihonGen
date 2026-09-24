@@ -3,7 +3,7 @@ import asyncio
 import pytest
 
 from domain.generation_schema import ReplyIntent
-from graph.helpers import PROMPT_LABELS, prepass_reply
+from graph.helpers import HELP_TEXTS, PROMPT_LABELS, hint_for_interrupt, prepass_reply
 from graph.nodes.reply import classify_label
 from graph.routing import route_reply_intent, route_tutor_source
 from llm.system_prompts import reply_classifier_prompt
@@ -140,3 +140,22 @@ def test_route_reply_intent(prompt, intent, exists, expected):
 )
 def test_route_tutor_source(prompt, exists, expected):
     assert route_tutor_source({"reply_prompt": prompt, "exists": exists}) == expected
+
+
+@pytest.mark.parametrize(
+    "interrupt_type,expected_prompt",
+    [
+        ("quiz_readiness", "quiz_readiness"),
+        ("quiz_answer", "quiz_answer"),
+        ("anki_update_approval", "anki_approval"),
+        ("anki_create_approval", "anki_approval"),
+    ],
+)
+def test_hint_for_interrupt(interrupt_type, expected_prompt):
+    hint = hint_for_interrupt(interrupt_type)
+    assert hint == HELP_TEXTS[expected_prompt]
+    assert hint
+
+
+def test_hint_for_unknown_interrupt_is_empty():
+    assert hint_for_interrupt("nope") == ""

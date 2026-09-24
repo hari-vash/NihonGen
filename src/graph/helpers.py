@@ -54,6 +54,26 @@ _STOP_PHRASES = {
 _QUESTION_STARTERS = ("what", "why", "how", "when", "where", "which", "who", "can you", "could you")
 
 
+HELP_TEXTS = {
+    "quiz_readiness": "tip: reply yes or no — or ask a question, or type stop.",
+    "quiz_answer": "tip: answer the question, or type i don't know / skip / stop — questions welcome.",
+    "anki_approval": "tip: reply yes or no — conditions like 'only the readings' will be re-asked. stop ends here.",
+}
+
+_INTERRUPT_TO_PROMPT = {
+    "quiz_readiness": "quiz_readiness",
+    "quiz_answer": "quiz_answer",
+    "anki_update_approval": "anki_approval",
+    "anki_create_approval": "anki_approval",
+}
+
+
+def hint_for_interrupt(interrupt_type: str) -> str:
+    """One-line hint for an interrupt payload. Empty string when unknown."""
+    prompt = _INTERRUPT_TO_PROMPT.get(interrupt_type, "")
+    return HELP_TEXTS.get(prompt, "")
+
+
 def _normalize_reply(text: str) -> str:
     normalized = re.sub(r"\s+", " ", text.strip().lower())
     normalized = normalized.replace("’", "'")

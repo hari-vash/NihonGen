@@ -222,6 +222,9 @@ data/*.gz
 data/JMdict_e
 !data/.gitkeep
 
+# Runtime verification log (reproducible from a run, not source)
+evals/verification_failures.jsonl
+
 # Marimo
 marimo/_static/
 marimo/_lsp/

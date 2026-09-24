@@ -10,6 +10,7 @@ from mcp.client.stdio import stdio_client
 
 from graph.builder import build_graph
 from graph.context import RuntimeContext
+from graph.helpers import hint_for_interrupt
 from llm.model import build_models
 from infrastructure.dictionary import DictionaryService
 from application import renderer
@@ -30,6 +31,7 @@ async def run_interactive_graph(graph, initial_state, config, context):
     evaluation_rendered = True
     last_rendered_explanation = None
     last_rendered_anki_status = None
+    skip_noticed_for = None
 
     while True:
         current_kanji = result.get("kanji")
@@ -57,9 +59,17 @@ async def run_interactive_graph(graph, initial_state, config, context):
             renderer.render_anki_result(result["anki_status"])
             last_rendered_anki_status = result["anki_status"]
 
+        if result.get("reply_intent") == "skip_kanji" and current_kanji != skip_noticed_for:
+            print(f"\nSkipped {current_kanji} — moving on.")
+            skip_noticed_for = current_kanji
+
         interrupts = result.get("__interrupt__")
 
         if not interrupts:
+            if result.get("reply_intent") == "stop":
+                chunk = result.get("current_chunk") or []
+                index = result.get("current_index") or 0
+                print(f"\nStopped after {min(index, len(chunk))} of {len(chunk)} in this chunk.")
             return result
 
         interrupt_value = interrupts[0].value
@@ -69,6 +79,11 @@ async def run_interactive_graph(graph, initial_state, config, context):
             last_rendered_explanation = result["pending_explanation"]
 
         renderer.render_interrupt(interrupt_value)
+
+        if isinstance(interrupt_value, dict):
+            hint = hint_for_interrupt(interrupt_value.get("type", ""))
+            if hint:
+                print(hint)
 
         user_input = await asyncio.to_thread(input,"\n> ")
 

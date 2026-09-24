@@ -1,0 +1,20 @@
+{"text": "yes", "expected": "ready"}
+{"text": "yeah let's go", "expected": "ready"}
+{"text": "i'm ready", "expected": "ready"}
+{"text": "absolutely", "expected": "ready"}
+{"text": "okay", "expected": "ready"}
+{"text": "no", "expected": "not_ready"}
+{"text": "not yet", "expected": "not_ready"}
+{"text": "explain again please", "expected": "not_ready"}
+{"text": "i'm confused", "expected": "not_ready"}
+{"text": "what does mizu mean?", "expected": "question"}
+{"text": "why is it read sui sometimes?", "expected": "question"}
+{"text": "help", "expected": "question"}
+{"text": "can you explain the difference?", "expected": "question"}
+{"text": "stop", "expected": "stop"}
+{"text": "quit", "expected": "stop"}
+{"text": "maybe later", "expected": "unclear"}
+{"text": "hmm", "expected": "unclear"}
+{"text": "ok but only if it's quick", "expected": "unclear"}
+{"text": "yees", "expected": "unclear"}
+{"text": "no, wait, yes", "expected": "unclear"}

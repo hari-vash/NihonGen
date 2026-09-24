@@ -1,0 +1,20 @@
+{"text": "kun'yomi, mizu", "expected": "answer"}
+{"text": "on'yomi", "expected": "answer"}
+{"text": "water", "expected": "answer"}
+{"text": "mark it mastered", "expected": "answer"}
+{"text": "i think it's sui", "expected": "answer"}
+{"text": "i don't know", "expected": "dont_know"}
+{"text": "idk", "expected": "dont_know"}
+{"text": "no idea", "expected": "dont_know"}
+{"text": "skip", "expected": "skip_kanji"}
+{"text": "skip this kanji", "expected": "skip_kanji"}
+{"text": "next", "expected": "skip_kanji"}
+{"text": "what does mizu mean?", "expected": "question"}
+{"text": "why sui and not mizu here?", "expected": "question"}
+{"text": "help", "expected": "question"}
+{"text": "stop", "expected": "stop"}
+{"text": "quit", "expected": "stop"}
+{"text": "hmm not sure maybe", "expected": "unclear"}
+{"text": "yees", "expected": "unclear"}
+{"text": "kinda", "expected": "unclear"}
+{"text": "...", "expected": "unclear"}
