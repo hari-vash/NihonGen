@@ -36,7 +36,7 @@ def test_current_question_falls_back_to_last_message():
     assert current_question(state) == "What reading is used for 水 alone?"
 
 
-def test_tutor_leaves_quiz_round_untouched():
+def test_tutor_leaves_quiz_state_untouched():
     class FakeLLM:
         def bind_tools(self, tools):
             return self
@@ -63,7 +63,7 @@ def test_generate_quiz_question_stores_text():
     rt = SimpleNamespace(context=SimpleNamespace(models=SimpleNamespace(examiner=FakeExaminer())))
     state = {
         "kanji": "水",
-        "quiz_round": 0,
+        "quiz_attempts": [],
         "lesson": SimpleNamespace(
             to_polished_string=lambda: "lesson",
         ),
@@ -71,5 +71,5 @@ def test_generate_quiz_question_stores_text():
     out = asyncio.run(generate_quiz_question(state, rt))
     assert out["current_question"].prompt == "What reading is used for 水 alone?"
     assert out["current_question"].expected == "mizu"
-    assert out["quiz_round"] == 1
+    assert "quiz_round" not in out
     assert out["messages"][0].content == "What reading is used for 水 alone?"

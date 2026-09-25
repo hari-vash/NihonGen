@@ -39,6 +39,14 @@ def test_allowed_types_satisfied_stays_open():
     assert len(allowed_types(attempts)) == 6
 
 
+def test_route_quiz_interim_completion():
+    from graph.routing import route_quiz
+
+    assert route_quiz({"quiz_attempts": [_attempt() for _ in range(4)]}) == "next_question"
+    assert route_quiz({"quiz_attempts": [_attempt() for _ in range(5)]}) == "quiz_passed"
+    assert route_quiz({}) == "next_question"
+
+
 def test_current_question_reads_structured():
     state = {
         "current_question": _q(prompt="Structured?"),

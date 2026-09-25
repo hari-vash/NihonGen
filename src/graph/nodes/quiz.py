@@ -62,7 +62,7 @@ async def explain_again(state: State,runtime: Runtime[RuntimeContext]):
         ]
     )
 
-    return {"messages": [response], "quiz_round": 0, "pending_explanation": message_to_text(response)}
+    return {"messages": [response], "quiz_attempts": [], "current_question": None, "pending_explanation": message_to_text(response)}
 
 
 async def generate_quiz_question(state: State,runtime: Runtime[RuntimeContext]):
@@ -80,7 +80,6 @@ async def generate_quiz_question(state: State,runtime: Runtime[RuntimeContext]):
 
     return {
         "messages": [AIMessage(content=question.prompt)],
-        "quiz_round": round_number,
         "current_question": question,
     }
 

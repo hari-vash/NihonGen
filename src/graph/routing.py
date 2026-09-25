@@ -1,7 +1,5 @@
+from graph.nodes.quiz import QUIZ_LENGTH
 from graph.state import State
-
-
-MAX_QUIZ_ROUNDS = 6
 
 
 def _approval_target(state: State):
@@ -56,13 +54,12 @@ def route_tutor_source(state: State):
 
 
 def route_quiz(state: State):
-    evaluation = state["quiz_evaluation"]
+    """Interim verdict: completion-based pass. Item 3 replaces this with the
+    miss/coverage gate. Until then, finishing 5 questions passes."""
+    attempts = state.get("quiz_attempts") or []
 
-    if evaluation.mastered:
+    if len(attempts) >= QUIZ_LENGTH:
         return "quiz_passed"
-
-    if state["quiz_round"] >= MAX_QUIZ_ROUNDS:
-        return "needs_review"
 
     return "next_question"
 

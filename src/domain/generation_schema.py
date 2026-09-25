@@ -108,13 +108,6 @@ class QuizGrade(BaseModel):
     feedback: str = Field(description="Encouraging feedback that reveals the correct answer on miss")
 
 
-class QuizEvaluation(BaseModel):
-    correct: bool = Field(description="Whether the student's answer is substantially correct.")
-    feedback: str = Field(description="Clear and encouraging feedback on the student's result.")
-    explanation: str = Field(description="Explanation of the correct answer, including the relevant kanji usage.")
-    mastered: bool = Field(description="Whether this student has demonstrated sufficient understanding of this kanji to move on.")
-
-
 class ReplyIntent(BaseModel):
     """One classified user reply. The label is constrained in code to the
     calling prompt's allowed set (see graph.helpers.PROMPT_LABELS)."""

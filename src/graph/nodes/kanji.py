@@ -9,9 +9,7 @@ def select_kanji(state: State):
 
     return {
         "kanji": kanji,
-        "quiz_round": 0,
         "pending_explanation": None,
-        "quiz_evaluation": None,
         "anki_status": None,
         "dictionary_facts": None,
         "verify_retries": 0,
@@ -19,6 +17,8 @@ def select_kanji(state: State):
         "last_reply": None,
         "reply_prompt": None,
         "reply_intent": None,
+        "current_question": None,
+        "quiz_attempts": [],
     }
 
 

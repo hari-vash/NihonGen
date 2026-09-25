@@ -1,7 +1,7 @@
 from langgraph.graph import MessagesState
 from typing_extensions import NotRequired
 
-from domain.generation_schema import KanjiFacts, KanjiLesson, QuizAttempt, QuizEvaluation, QuizQuestion
+from domain.generation_schema import KanjiFacts, KanjiLesson, QuizAttempt, QuizQuestion
 
 class State(MessagesState):
     # Input / document
@@ -22,10 +22,8 @@ class State(MessagesState):
     verify_feedback: NotRequired[str | None]
 
     # Quiz
-    quiz_round: NotRequired[int]
     current_question: NotRequired[QuizQuestion | None]
     quiz_attempts: NotRequired[list[QuizAttempt]]
-    quiz_evaluation: NotRequired[QuizEvaluation | None]
 
     # Anki
     exists: NotRequired[bool]

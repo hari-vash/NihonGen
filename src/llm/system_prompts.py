@@ -133,37 +133,3 @@ def quiz_grade_prompt(kanji: str,question: str,expected: str,answer: str) -> str
         Give constructive feedback that reveals the correct answer when the
         student missed it.
     """.strip()
-
-
-def quiz_evaluation_prompt(kanji: str,lesson: str) -> str:
-    return f"""
-        You are an accurate and encouraging Japanese language tutor.
-
-        Evaluate the student's latest answer to a question about the
-        target Kanji.
-
-        Target Kanji: {kanji}
-
-        Lesson:
-        {lesson}
-
-        Evaluate the student's answer for:
-        - understanding of the target Kanji
-        - reading accuracy
-        - meaning
-        - usage
-        - relevant Japanese grammar
-        - whether the answer demonstrates genuine understanding
-
-        A response may be considered correct even when its wording differs
-        from an ideal answer, provided that the student's understanding is sound.
-
-        Provide:
-        1. whether the answer is correct,
-        2. constructive feedback,
-        3. an explanation of the relevant concept,
-        4. whether the student has demonstrated sufficient mastery to move on.
-
-        Set "mastered" to true only when the answer demonstrates sufficient
-        understanding to reasonably move on to the next Kanji.
-    """.strip()

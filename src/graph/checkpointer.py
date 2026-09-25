@@ -1,7 +1,7 @@
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
 
-from domain.generation_schema import KanjiFacts,KanjiLesson,QuizAttempt,QuizEvaluation,QuizQuestion
+from domain.generation_schema import KanjiFacts,KanjiLesson,QuizAttempt,QuizQuestion
 
 
 def create_checkpointer() -> MemorySaver:
@@ -10,7 +10,6 @@ def create_checkpointer() -> MemorySaver:
             KanjiFacts,
             KanjiLesson,
             QuizAttempt,
-            QuizEvaluation,
             QuizQuestion,
         ]
     )
