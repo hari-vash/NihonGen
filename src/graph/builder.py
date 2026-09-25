@@ -4,7 +4,7 @@ from graph.context import RuntimeContext
 from graph.nodes.anki import approve_create,approve_update,check_anki,create_flashcard,update_flashcard
 from graph.nodes.document import get_next_chunk, initialize_document
 from graph.nodes.kanji import advance_kanji,dictionary_lookup,generate_lesson,select_kanji
-from graph.nodes.quiz import evaluate_quiz_answer,explain_again,generate_quiz_question,quiz_readiness,wait_for_answer
+from graph.nodes.quiz import evaluate_quiz_answer,explain_again,generate_quiz_question,park_kanji,quiz_readiness,wait_for_answer
 from graph.nodes.reply import classify_reply
 from graph.nodes.tutor import tutor
 from graph.nodes.verify import verify_lesson
@@ -83,8 +83,13 @@ def build_graph(*, checkpointer=None):
         {
             "next_question": "generate_quiz_question",
             "needs_review": "explain_again",
+            "park": "park_kanji",
             "quiz_passed": "check_anki",
         })
+
+    # Parked kanji skip Anki entirely
+    builder.add_node("park_kanji", park_kanji)
+    builder.add_edge("park_kanji", "advance_kanji")
 
     # Anki
     builder.add_node("check_anki", check_anki)

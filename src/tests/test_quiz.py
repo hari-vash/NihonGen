@@ -78,6 +78,78 @@ def test_route_quiz_delegates_to_gate():
     assert route_quiz({}) == "next_question"
 
 
+def test_route_quiz_parks_when_cycles_exhausted():
+    from graph.routing import route_quiz
+
+    failed = [_attempt("reading", "miss")] * 3
+    assert route_quiz({"quiz_attempts": failed, "review_cycles": 1}) == "needs_review"
+    assert route_quiz({"quiz_attempts": failed, "review_cycles": 2}) == "park"
+
+
+def test_explain_again_consumes_cycle_only_after_attempts():
+    from graph.nodes.quiz import explain_again
+
+    class FakeLLM:
+        def __init__(self):
+            self.system = ""
+
+        async def ainvoke(self, messages):
+            self.system = messages[0].content
+            from langchain.messages import AIMessage
+
+            return AIMessage(content="Simpler take.")
+
+    async def run(state):
+        rt = SimpleNamespace(
+            context=SimpleNamespace(models=SimpleNamespace(llm=FakeLLM()))
+        )
+        return await explain_again(state, rt), rt.context.models.llm.system
+
+    base = {
+        "kanji": "水",
+        "dictionary_facts": SimpleNamespace(model_dump_json=lambda indent=0: "{}"),
+        "lesson": SimpleNamespace(model_dump_json=lambda indent=0: "{}"),
+    }
+    probe = _attempt("reading", "miss")
+    out, system = asyncio.run(
+        run({**base, "quiz_attempts": [probe], "review_cycles": 0})
+    )
+    assert out["review_cycles"] == 1
+    assert out["quiz_attempts"] == []
+    assert "You answered:" in system
+
+    out, _ = asyncio.run(run({**base, "quiz_attempts": [], "review_cycles": 0}))
+    assert out["review_cycles"] == 0
+
+
+def test_park_kanji_notice_without_anki():
+    from graph.nodes.quiz import park_kanji
+
+    out = park_kanji({"kanji": "水"})
+    assert "Parked 水" in out["pending_explanation"]
+    assert set(out) == {"pending_explanation"}
+
+
+def test_select_kanji_resets_cycles_and_clears_messages():
+    from langchain.messages import AIMessage, HumanMessage
+
+    from graph.nodes.kanji import select_kanji
+
+    out = select_kanji(
+        {
+            "current_chunk": ["水"],
+            "current_index": 0,
+            "messages": [AIMessage(content="a", id="1"), HumanMessage(content="b", id="2")],
+        }
+    )
+    assert out["review_cycles"] == 0
+    assert out["quiz_attempts"] == []
+    assert out["current_question"] is None
+    removals = out["messages"]
+    assert {m.id for m in removals} == {"1", "2"}
+    assert all(type(m).__name__ == "RemoveMessage" for m in removals)
+
+
 def test_generate_quiz_question_retries_defiant_type():
     from graph.nodes.quiz import generate_quiz_question
 

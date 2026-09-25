@@ -14,6 +14,7 @@ ALL_QUESTION_TYPES = sorted(READING_FAMILY | MEANING_FAMILY)
 
 QUIZ_LENGTH = 5
 QUIZ_MAX_MISSES = 2
+MAX_REVIEW_CYCLES = 2
 
 
 def mastery_gate(attempts: list[QuizAttempt]) -> str:
@@ -54,6 +55,16 @@ def quiz_readiness(state: State):
 
 
 async def explain_again(state: State,runtime: Runtime[RuntimeContext]):
+    attempts = state.get("quiz_attempts") or []
+    missed = [
+        f"Q: {a.question.prompt}\nYou answered: {a.user_answer}\nCorrect: {a.question.expected}"
+        for a in attempts
+        if a.outcome != "correct"
+    ]
+    missed_section = (
+        "\n\nThe learner missed these questions:\n" + "\n".join(missed)
+        if missed else ""
+    )
     response = await runtime.context.models.llm.ainvoke(
         [
             SystemMessage(
@@ -64,6 +75,7 @@ async def explain_again(state: State,runtime: Runtime[RuntimeContext]):
                     "Do not contradict the existing information. "
                     "Make the explanation simpler and clearer. "
                     "Focus on likely learner confusion."
+                    f"{missed_section}"
                 )
             ),
             HumanMessage(
@@ -78,7 +90,24 @@ async def explain_again(state: State,runtime: Runtime[RuntimeContext]):
         ]
     )
 
-    return {"messages": [response], "quiz_attempts": [], "current_question": None, "pending_explanation": message_to_text(response)}
+    cycles = state.get("review_cycles") or 0
+    return {
+        "messages": [response],
+        "quiz_attempts": [],
+        "current_question": None,
+        "review_cycles": cycles + 1 if attempts else cycles,
+        "pending_explanation": message_to_text(response),
+    }
+
+
+def park_kanji(state: State):
+    """No Anki action. The kanji is parked after exhausting review cycles."""
+    return {
+        "pending_explanation": (
+            f"Parked {state.get('kanji')}: two review cycles used without passing. "
+            "Moving on for now — it will come back in a later session."
+        )
+    }
 
 
 async def generate_quiz_question(state: State,runtime: Runtime[RuntimeContext]):

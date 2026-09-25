@@ -1,3 +1,4 @@
+from langchain_core.messages import RemoveMessage
 from langgraph.runtime import Runtime
 
 from graph.context import RuntimeContext
@@ -9,6 +10,7 @@ def select_kanji(state: State):
 
     return {
         "kanji": kanji,
+        "messages": [RemoveMessage(id=m.id) for m in state.get("messages", []) if m.id],
         "pending_explanation": None,
         "anki_status": None,
         "dictionary_facts": None,
@@ -19,6 +21,7 @@ def select_kanji(state: State):
         "reply_intent": None,
         "current_question": None,
         "quiz_attempts": [],
+        "review_cycles": 0,
     }
 
 

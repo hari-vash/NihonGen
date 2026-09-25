@@ -24,6 +24,7 @@ class State(MessagesState):
     # Quiz
     current_question: NotRequired[QuizQuestion | None]
     quiz_attempts: NotRequired[list[QuizAttempt]]
+    review_cycles: NotRequired[int]
 
     # Anki
     exists: NotRequired[bool]

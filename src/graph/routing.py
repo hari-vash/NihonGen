@@ -1,4 +1,4 @@
-from graph.nodes.quiz import mastery_gate
+from graph.nodes.quiz import MAX_REVIEW_CYCLES, mastery_gate
 from graph.state import State
 
 
@@ -54,14 +54,16 @@ def route_tutor_source(state: State):
 
 
 def route_quiz(state: State):
-    """Thin reader over the mastery gate (SPEC 8.1). Fail routes to review;
-    review cycles are capped by Item 4."""
+    """Thin reader over the mastery gate (SPEC 8.1). Fail with review cycles
+    left goes back for re-explanation; exhausted cycles park the kanji."""
     verdict = mastery_gate(state.get("quiz_attempts") or [])
 
     if verdict == "pass":
         return "quiz_passed"
 
     if verdict == "fail":
+        if (state.get("review_cycles") or 0) >= MAX_REVIEW_CYCLES:
+            return "park"
         return "needs_review"
 
     return "next_question"
