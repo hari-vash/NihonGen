@@ -9,8 +9,8 @@ from domain.generation_schema import KanjiLesson
 from graph.nodes import verify as V
 from graph.nodes.verify import DialogueJudgment, apply_judgments, check_word
 from graph.routing import route_verification
+from infrastructure.anki import format_verified_words
 from infrastructure.dictionary import DictionaryService, WordHit
-from tools import format_verified_words
 
 DB_PATH = Path(__file__).resolve().parents[2] / "data" / "dictionary.sqlite"
 

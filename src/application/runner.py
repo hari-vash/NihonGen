@@ -11,6 +11,7 @@ from mcp.client.stdio import stdio_client
 from graph.builder import build_graph
 from graph.context import RuntimeContext
 from graph.helpers import hint_for_interrupt
+from infrastructure.anki import AnkiClient, AnkiError
 from llm.model import build_models
 from infrastructure.dictionary import DictionaryService
 from application import renderer
@@ -109,6 +110,7 @@ async def run_app():
     graph = build_graph()
     models = build_models()
     dictionary = DictionaryService(dict_path)
+    anki = AnkiClient(app_config.anki_url, app_config.anki_deck)
 
     thread_id = f"kanji_convo_{uuid.uuid4().hex}"
 
@@ -120,7 +122,13 @@ async def run_app():
         async with ClientSession(read, write) as session:
             await session.initialize()
 
-            context = RuntimeContext(mcp_session=session,models=models,dictionary=dictionary)
+            try:
+                await anki.ping()
+            except AnkiError as exc:
+                print(f"\nCannot reach Anki at {app_config.anki_url}: {exc}")
+                return
+
+            context = RuntimeContext(mcp_session=session,models=models,dictionary=dictionary,anki=anki)
 
             final_state = await run_interactive_graph(
                 graph=graph,

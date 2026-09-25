@@ -13,6 +13,7 @@ def select_kanji(state: State):
         "messages": [RemoveMessage(id=m.id) for m in state.get("messages", []) if m.id],
         "pending_explanation": None,
         "anki_status": None,
+        "current_back": None,
         "dictionary_facts": None,
         "verify_retries": 0,
         "verify_feedback": None,

@@ -21,15 +21,6 @@ class KanjiFacts(BaseModel):
             f" | Grade: {self.grade if self.grade is not None else '—'}"
         )
 
-class KanjiExample(BaseModel):
-    word: str = Field(description="The example word containing the kanji (e.g., 火山)")
-    kana: str = Field(description="The reading in hiragana or katakana (e.g., かざん)")
-    romaji: str = Field(description="The romaji reading (e.g., kazan)")
-    meaning: str = Field(description="The English meaning of the word (e.g., volcano)")
-
-    def __str__(self):
-        return f"{self.word} [{self.kana}] ({self.romaji}) - {self.meaning}"
-
 class VerifiedWord(BaseModel):
     """An example word confirmed in JMdict. Romaji is filled by code, never the LLM."""
 
@@ -114,3 +105,11 @@ class ReplyIntent(BaseModel):
 
     label: str = Field(description="The reply label, one of the prompt's allowed labels")
     reason: str = Field(default="", description="One-line reason for the label")
+
+
+class AnkiResult(BaseModel):
+    """Structured Anki outcome. Errors are data, never success strings."""
+
+    ok: bool = Field(description="Whether the Anki operation succeeded")
+    action: str = Field(description="What happened: created, updated, skipped, exists, or failed")
+    message: str = Field(description="Human-readable outcome for display")

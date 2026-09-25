@@ -1,5 +1,5 @@
 import time
-from domain.generation_schema import KanjiFacts, KanjiLesson, QuizAttempt
+from domain.generation_schema import KanjiFacts, KanjiLesson, QuizAttempt, AnkiResult
 
 
 def typewriter_print(text: str, delay: float = 0.01):
@@ -34,10 +34,11 @@ def render_quiz_result(attempt: QuizAttempt):
         print("-" * 60)
         typewriter_print(f"Correct answer: {attempt.question.expected}")
 
-def render_anki_result(anki_result:str):
+def render_anki_result(anki_result: AnkiResult):
     print("=" * 60)
-    typewriter_print("ANKI:")
-    typewriter_print(anki_result)
+    mark = "✓" if anki_result.ok else "✗"
+    typewriter_print(f"ANKI [{anki_result.action}]: {mark}")
+    typewriter_print(anki_result.message)
     print("=" * 60)
 
 def render_additional_explanation(explanation:str):
