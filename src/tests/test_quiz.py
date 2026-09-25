@@ -39,6 +39,70 @@ def test_allowed_types_satisfied_stays_open():
     assert len(allowed_types(attempts)) == 6
 
 
+def test_mastery_gate_early_fail_on_fourth():
+    from graph.nodes.quiz import mastery_gate
+
+    assert mastery_gate([_attempt("reading", o) for o in ("correct", "miss", "miss", "miss")]) == "fail"
+    assert mastery_gate([_attempt("reading", o) for o in ("miss", "miss", "correct", "miss")]) == "fail"
+    assert mastery_gate([_attempt("reading", o) for o in ("correct", "correct", "miss", "miss")]) == "continue"
+
+
+def test_t9_full_walk_review_review_park():
+    import asyncio
+    from types import SimpleNamespace
+
+    from langchain.messages import AIMessage
+
+    from graph.nodes.quiz import explain_again, park_kanji
+    from graph.routing import route_quiz
+
+    class FakeLLM:
+        async def ainvoke(self, messages):
+            return AIMessage(content="Simpler take.")
+
+    def run_explain(state):
+        rt = SimpleNamespace(context=SimpleNamespace(models=SimpleNamespace(llm=FakeLLM())))
+        return asyncio.run(explain_again(state, rt))
+
+    base = {
+        "kanji": "水",
+        "dictionary_facts": SimpleNamespace(model_dump_json=lambda indent=0: "{}"),
+        "lesson": SimpleNamespace(model_dump_json=lambda indent=0: "{}"),
+    }
+    failed = [_attempt("reading", "miss")] * 3
+
+    # cycle 1
+    assert route_quiz({"quiz_attempts": failed, "review_cycles": 0}) == "needs_review"
+    out = run_explain({**base, "quiz_attempts": failed, "review_cycles": 0})
+    assert out["review_cycles"] == 1 and out["quiz_attempts"] == []
+
+    # cycle 2
+    assert route_quiz({"quiz_attempts": failed, "review_cycles": 1}) == "needs_review"
+    out = run_explain({**base, "quiz_attempts": failed, "review_cycles": 1})
+    assert out["review_cycles"] == 2 and out["quiz_attempts"] == []
+
+    # parked, no Anki keys
+    assert route_quiz({"quiz_attempts": failed, "review_cycles": 2}) == "park"
+    parked = park_kanji({"kanji": "水"})
+    assert set(parked) == {"pending_explanation"}
+
+
+def test_quiz_passed_requires_gate_pass_sweep():
+    import itertools
+
+    from graph.nodes.quiz import mastery_gate
+    from graph.routing import route_quiz
+
+    for n in range(6):
+        for outcomes in itertools.product("CM", repeat=n):
+            attempts = [
+                _attempt("reading", "correct" if o == "C" else "miss") for o in outcomes
+            ]
+            assert (route_quiz({"quiz_attempts": attempts}) == "quiz_passed") == (
+                mastery_gate(attempts) == "pass"
+            )
+
+
 def test_mastery_gate_matrix():
     from graph.nodes.quiz import mastery_gate
 
