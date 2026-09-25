@@ -68,10 +68,7 @@ async def run_interactive_graph(graph, initial_state, config, context):
         interrupts = result.get("__interrupt__")
 
         if not interrupts:
-            if result.get("reply_intent") == "stop":
-                chunk = result.get("current_chunk") or []
-                index = result.get("current_index") or 0
-                print(f"\nStopped after {min(index, len(chunk))} of {len(chunk)} in this chunk.")
+            renderer.render_summary(result.get("results") or [])
             return result
 
         interrupt_value = interrupts[0].value
@@ -148,7 +145,7 @@ async def run_app():
                 print(f"\n{exc}")
                 return
 
-    print("\nProcessing complete.")
+    print("\nDone.")
 
 
 if __name__ == "__main__":

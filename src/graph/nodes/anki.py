@@ -1,6 +1,6 @@
 from langgraph.runtime import Runtime
 from langgraph.types import interrupt
-from domain.generation_schema import AnkiResult
+from domain.generation_schema import AnkiResult, KanjiOutcome
 from graph.context import RuntimeContext
 from graph.state import State
 from infrastructure.anki import AnkiError, DuplicateNoteError, format_card_back
@@ -50,6 +50,14 @@ def approve_update(state: State, runtime: Runtime[RuntimeContext]):
     return {"last_reply": str(decision), "reply_prompt": "anki_approval"}
 
 
+def _record(state: State, outcome: str) -> dict:
+    results = list(state.get("results") or [])
+    kanji = state.get("kanji")
+    if kanji and not any(r.kanji == kanji for r in results):
+        results.append(KanjiOutcome(kanji=kanji, outcome=outcome))
+    return {"results": results}
+
+
 async def update_flashcard(state: State, runtime: Runtime[RuntimeContext]):
     back = format_card_back(state["dictionary_facts"], state["lesson"])
     try:
@@ -58,22 +66,22 @@ async def update_flashcard(state: State, runtime: Runtime[RuntimeContext]):
             return {"anki_status": AnkiResult(
                 ok=False, action="failed",
                 message=f"Could not update '{state['kanji']}': no existing flashcard was found.",
-            )}
+            ), **_record(state, "failed")}
         if len(note_ids) > 1:
             return {"anki_status": AnkiResult(
                 ok=False, action="failed",
                 message=f"Could not update '{state['kanji']}': found {len(note_ids)} matching notes. Refusing to update automatically.",
-            )}
+            ), **_record(state, "failed")}
         await runtime.context.anki.update_note(note_ids[0], state["kanji"], back)
         return {"anki_status": AnkiResult(
             ok=True, action="updated",
             message=f"Successfully updated the flashcard for '{state['kanji']}'.",
-        )}
+        ), **_record(state, "updated")}
     except AnkiError as exc:
         return {"anki_status": AnkiResult(
             ok=False, action="failed",
             message=f"Failed to update the flashcard for '{state['kanji']}': {exc}",
-        )}
+        ), **_record(state, "failed")}
 
 
 def approve_create(state: State, runtime: Runtime[RuntimeContext]):
@@ -92,19 +100,19 @@ async def create_flashcard(state: State, runtime: Runtime[RuntimeContext]):
             return {"anki_status": AnkiResult(
                 ok=False, action="exists",
                 message=f"'{state['kanji']}' is already in the deck. No duplicate created.",
-            )}
+            ), **_record(state, "failed")}
         await runtime.context.anki.add_note(state["kanji"], back)
         return {"anki_status": AnkiResult(
             ok=True, action="created",
             message="Successfully created the flashcard.",
-        )}
+        ), **_record(state, "added")}
     except DuplicateNoteError:
         return {"anki_status": AnkiResult(
             ok=False, action="exists",
             message=f"'{state['kanji']}' is already in the deck. No duplicate created.",
-        )}
+        ), **_record(state, "failed")}
     except AnkiError as exc:
         return {"anki_status": AnkiResult(
             ok=False, action="failed",
             message=f"Could not create card. Anki returned this error: {exc}",
-        )}
+        ), **_record(state, "failed")}

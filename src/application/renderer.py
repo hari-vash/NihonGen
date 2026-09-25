@@ -41,6 +41,20 @@ def render_anki_result(anki_result: AnkiResult):
     typewriter_print(anki_result.message)
     print("=" * 60)
 
+def render_summary(results: list) -> None:
+    print("\n" + "=" * 60)
+    typewriter_print("Session summary:")
+    if not results:
+        typewriter_print("No kanji completed this session.")
+    else:
+        counts: dict = {}
+        for outcome in results:
+            counts[outcome.outcome] = counts.get(outcome.outcome, 0) + 1
+        typewriter_print(", ".join(f"{count} {name}" for name, count in sorted(counts.items())))
+        for outcome in results:
+            typewriter_print(f"  {outcome.kanji} — {outcome.outcome}")
+    print("=" * 60)
+
 def render_additional_explanation(explanation:str):
     print("=" * 60)
     typewriter_print("Additional Explanation:")

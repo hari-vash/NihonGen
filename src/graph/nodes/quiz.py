@@ -1,7 +1,7 @@
 from langchain.messages import HumanMessage, SystemMessage, AIMessage
 from langgraph.runtime import Runtime
 from langgraph.types import interrupt
-from domain.generation_schema import QuizAttempt, QuizGrade, QuizQuestion
+from domain.generation_schema import KanjiOutcome, QuizAttempt, QuizGrade, QuizQuestion
 from graph.context import RuntimeContext
 from graph.helpers import message_to_text
 from graph.state import State
@@ -102,9 +102,14 @@ async def explain_again(state: State,runtime: Runtime[RuntimeContext]):
 
 def park_kanji(state: State):
     """No Anki action. The kanji is parked after exhausting review cycles."""
+    results = list(state.get("results") or [])
+    kanji = state.get("kanji")
+    if kanji and not any(r.kanji == kanji for r in results):
+        results.append(KanjiOutcome(kanji=kanji, outcome="parked"))
     return {
+        "results": results,
         "pending_explanation": (
-            f"Parked {state.get('kanji')}: two review cycles used without passing. "
+            f"Parked {kanji}: two review cycles used without passing. "
             "Moving on for now — it will come back in a later session."
         )
     }

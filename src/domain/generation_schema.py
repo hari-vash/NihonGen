@@ -113,3 +113,12 @@ class AnkiResult(BaseModel):
     ok: bool = Field(description="Whether the Anki operation succeeded")
     action: str = Field(description="What happened: created, updated, skipped, exists, or failed")
     message: str = Field(description="Human-readable outcome for display")
+
+
+class KanjiOutcome(BaseModel):
+    """Per-kanji session outcome for the end-of-session summary (SPEC 7.1)."""
+
+    kanji: str = Field(description="The kanji this outcome belongs to")
+    outcome: Literal["added", "updated", "parked", "skipped", "declined", "passed", "failed"] = Field(
+        description="What happened with this kanji this session"
+    )

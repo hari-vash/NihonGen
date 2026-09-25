@@ -81,10 +81,10 @@ def test_t9_full_walk_review_review_park():
     out = run_explain({**base, "quiz_attempts": failed, "review_cycles": 1})
     assert out["review_cycles"] == 2 and out["quiz_attempts"] == []
 
-    # parked, no Anki keys
+    # parked, records outcome, still no Anki keys
     assert route_quiz({"quiz_attempts": failed, "review_cycles": 2}) == "park"
     parked = park_kanji({"kanji": "水"})
-    assert set(parked) == {"pending_explanation"}
+    assert "anki_status" not in parked and "current_back" not in parked
 
 
 def test_quiz_passed_requires_gate_pass_sweep():
@@ -191,20 +191,29 @@ def test_park_kanji_notice_without_anki():
 
     out = park_kanji({"kanji": "水"})
     assert "Parked 水" in out["pending_explanation"]
-    assert set(out) == {"pending_explanation"}
+    assert "anki_status" not in out
 
 
 def test_select_kanji_resets_cycles_and_clears_messages():
+    import asyncio
     from langchain.messages import AIMessage, HumanMessage
+    from types import SimpleNamespace
 
     from graph.nodes.kanji import select_kanji
 
-    out = select_kanji(
-        {
-            "current_chunk": ["水"],
-            "current_index": 0,
-            "messages": [AIMessage(content="a", id="1"), HumanMessage(content="b", id="2")],
-        }
+    async def find_notes(kanji):
+        return []
+
+    rt = SimpleNamespace(context=SimpleNamespace(anki=SimpleNamespace(find_notes=find_notes)))
+    out = asyncio.run(
+        select_kanji(
+            {
+                "current_chunk": ["水"],
+                "current_index": 0,
+                "messages": [AIMessage(content="a", id="1"), HumanMessage(content="b", id="2")],
+            },
+            rt,
+        )
     )
     assert out["review_cycles"] == 0
     assert out["quiz_attempts"] == []
