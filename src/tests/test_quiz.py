@@ -39,12 +39,68 @@ def test_allowed_types_satisfied_stays_open():
     assert len(allowed_types(attempts)) == 6
 
 
-def test_route_quiz_interim_completion():
+def test_mastery_gate_matrix():
+    from graph.nodes.quiz import mastery_gate
+
+    all_correct = [_attempt("reading", "correct") for _ in range(5)]
+    assert mastery_gate(all_correct) == "pass"
+
+    mixed_pass = [_attempt("reading", "correct")] * 3 + [
+        _attempt("meaning", "miss"),
+        _attempt("reading", "dont_know"),
+    ]
+    assert mastery_gate(mixed_pass) == "pass"
+
+    three_misses = [_attempt("reading", "correct")] * 2 + [_attempt("meaning", "miss")] * 3
+    assert mastery_gate(three_misses) == "fail"
+
+    early_fail = [_attempt("reading", "miss")] * 3
+    assert mastery_gate(early_fail) == "fail"
+
+    assert mastery_gate([]) == "continue"
+    assert mastery_gate([_attempt("reading", "correct")] * 4) == "continue"
+    assert mastery_gate([_attempt("reading", "miss")] * 2) == "continue"
+
+
+def test_mastery_gate_dont_know_counts_as_miss():
+    from graph.nodes.quiz import mastery_gate
+
+    attempts = [_attempt("reading", "dont_know")] * 2 + [_attempt("meaning", "miss")]
+    assert mastery_gate(attempts) == "fail"
+
+
+def test_route_quiz_delegates_to_gate():
     from graph.routing import route_quiz
 
-    assert route_quiz({"quiz_attempts": [_attempt() for _ in range(4)]}) == "next_question"
-    assert route_quiz({"quiz_attempts": [_attempt() for _ in range(5)]}) == "quiz_passed"
+    assert route_quiz({"quiz_attempts": [_attempt("reading", "correct")] * 5}) == "quiz_passed"
+    assert route_quiz({"quiz_attempts": [_attempt("reading", "miss")] * 3}) == "needs_review"
+    assert route_quiz({"quiz_attempts": [_attempt()]}) == "next_question"
     assert route_quiz({}) == "next_question"
+
+
+def test_generate_quiz_question_retries_defiant_type():
+    from graph.nodes.quiz import generate_quiz_question
+
+    calls = {"n": 0}
+
+    class DefiantOnce:
+        async def ainvoke(self, prompt):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                return _q("reading", "Q1?", "A")
+            return _q("meaning", "Q2?", "A")
+
+    rt = SimpleNamespace(
+        context=SimpleNamespace(models=SimpleNamespace(examiner=DefiantOnce()))
+    )
+    state = {
+        "kanji": "水",
+        "lesson": SimpleNamespace(to_polished_string=lambda: "L"),
+        "quiz_attempts": [_attempt("reading"), _attempt("reading"), _attempt("reading"), _attempt("reading")],
+    }
+    out = asyncio.run(generate_quiz_question(state, rt))
+    assert calls["n"] == 2
+    assert out["current_question"].type == "meaning"
 
 
 def test_current_question_reads_structured():

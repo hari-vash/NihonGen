@@ -1,4 +1,4 @@
-from graph.nodes.quiz import QUIZ_LENGTH
+from graph.nodes.quiz import mastery_gate
 from graph.state import State
 
 
@@ -54,12 +54,15 @@ def route_tutor_source(state: State):
 
 
 def route_quiz(state: State):
-    """Interim verdict: completion-based pass. Item 3 replaces this with the
-    miss/coverage gate. Until then, finishing 5 questions passes."""
-    attempts = state.get("quiz_attempts") or []
+    """Thin reader over the mastery gate (SPEC 8.1). Fail routes to review;
+    review cycles are capped by Item 4."""
+    verdict = mastery_gate(state.get("quiz_attempts") or [])
 
-    if len(attempts) >= QUIZ_LENGTH:
+    if verdict == "pass":
         return "quiz_passed"
+
+    if verdict == "fail":
+        return "needs_review"
 
     return "next_question"
 

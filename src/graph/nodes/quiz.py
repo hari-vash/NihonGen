@@ -13,6 +13,22 @@ MEANING_FAMILY = {"meaning", "word_meaning"}
 ALL_QUESTION_TYPES = sorted(READING_FAMILY | MEANING_FAMILY)
 
 QUIZ_LENGTH = 5
+QUIZ_MAX_MISSES = 2
+
+
+def mastery_gate(attempts: list[QuizAttempt]) -> str:
+    """Pure pass rule (SPEC 8.1). Coverage is enforced at generation
+    (allowed_types); this gate assumes well-formed input and owns
+    count + misses only. dont_know counts as a miss."""
+    misses = sum(1 for a in attempts if a.outcome != "correct")
+
+    if misses > QUIZ_MAX_MISSES:
+        return "fail"
+
+    if len(attempts) >= QUIZ_LENGTH:
+        return "pass"
+
+    return "continue"
 
 
 def allowed_types(attempts: list[QuizAttempt]) -> list[str]:
@@ -77,6 +93,14 @@ async def generate_quiz_question(state: State,runtime: Runtime[RuntimeContext]):
     )
 
     question = await runtime.context.models.examiner.ainvoke(prompt)
+    if question.type not in allowed:
+        # One retry with a sterner instruction. Persistent defiance is
+        # accepted as-is (still Literal-valid): coverage stays best-effort
+        # rather than mislabelled.
+        question = await runtime.context.models.examiner.ainvoke(
+            prompt + "\n\nYour last question used a disallowed type. "
+            f"Retry with a type from exactly: {', '.join(allowed)}."
+        )
 
     return {
         "messages": [AIMessage(content=question.prompt)],
