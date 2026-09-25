@@ -51,7 +51,19 @@ _STOP_PHRASES = {
     "stop", "quit", "exit", "end session", "stop session", "finish",
 }
 
+_KANJI_RE = re.compile(r"[\u4e00-\u9faf]")
+
 _QUESTION_STARTERS = ("what", "why", "how", "when", "where", "which", "who", "can you", "could you")
+
+
+def extract_kanji_ordered(text: str) -> list[str]:
+    """Kanji in first-appearance order, deduped. Shared with typed input
+    (FR-2). Mirrors mcp_server.py's pattern; A9's wider-range limits apply."""
+    seen: list[str] = []
+    for char in _KANJI_RE.findall(text):
+        if char not in seen:
+            seen.append(char)
+    return seen
 
 
 HELP_TEXTS = {

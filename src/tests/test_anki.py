@@ -54,7 +54,6 @@ def _runtime(client):
 def _state(**over):
     state = {
         "kanji": "水",
-        "deck": "Test_Deck1",
         "dictionary_facts": _facts(),
         "lesson": _lesson(),
     }
@@ -167,7 +166,7 @@ def test_update_missing_note_reports_cleanly():
 
 def test_approval_message_shows_diff():
     msg = anki_nodes.approval_message(
-        _state(current_back="OLD<br>BACK")
+        _state(current_back="OLD<br>BACK"), "Test_Deck1"
     )
     assert "Current card:" in msg and "OLD\nBACK" in msg
     assert "Proposed card:" in msg and "水泳" in msg

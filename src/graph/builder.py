@@ -3,12 +3,13 @@ from graph.context import RuntimeContext
 
 from graph.nodes.anki import approve_create,approve_update,check_anki,create_flashcard,update_flashcard
 from graph.nodes.document import get_next_chunk, initialize_document
+from graph.nodes.input import prepare_typed_input
 from graph.nodes.kanji import advance_kanji,dictionary_lookup,generate_lesson,select_kanji
 from graph.nodes.quiz import evaluate_quiz_answer,explain_again,generate_quiz_question,park_kanji,quiz_readiness,wait_for_answer
 from graph.nodes.reply import classify_reply
 from graph.nodes.tutor import tutor
 from graph.nodes.verify import verify_lesson
-from graph.routing import route_anki,route_chunk,route_document,route_quiz,route_reply_intent,route_tutor_source,route_verification
+from graph.routing import route_anki,route_chunk,route_document,route_input,route_quiz,route_reply_intent,route_tutor_source,route_verification
 from graph.state import State
 from graph.checkpointer import create_checkpointer
 
@@ -19,15 +20,25 @@ def build_graph(*, checkpointer=None):
         context_schema=RuntimeContext,
     )
 
-    # Document → Kanji → Lesson
+    # Input modes: document via MCP, or typed text (FR-1, FR-2)
     builder.add_node("initialize_document", initialize_document)
+    builder.add_node("prepare_typed_input", prepare_typed_input)
+    builder.add_conditional_edges(START,
+        route_input,
+        {
+            "initialize_document": "initialize_document",
+            "typed_input": "prepare_typed_input",
+            "finish": END,
+        })
+
+    # Document → Kanji → Lesson
     builder.add_node("select_kanji", select_kanji)
     builder.add_node("dictionary_lookup", dictionary_lookup)
     builder.add_node("generate_lesson", generate_lesson)
     builder.add_node("verify_lesson", verify_lesson)
 
-    builder.add_edge(START, "initialize_document")
     builder.add_edge("initialize_document", "select_kanji")
+    builder.add_edge("prepare_typed_input", "select_kanji")
     builder.add_edge("select_kanji", "dictionary_lookup")
     builder.add_edge("dictionary_lookup", "generate_lesson")
     builder.add_edge("generate_lesson", "verify_lesson")

@@ -98,3 +98,13 @@ def route_verification(state: State):
         return "retry"
 
     return "verified"
+
+
+def route_input(state: State):
+    if state.get("input_mode") == "typed":
+        return "typed_input"
+
+    if state.get("input_mode") == "document":
+        return "initialize_document"
+
+    return "finish"

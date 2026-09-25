@@ -4,9 +4,10 @@ from typing_extensions import NotRequired
 from domain.generation_schema import AnkiResult, KanjiFacts, KanjiLesson, QuizAttempt, QuizQuestion
 
 class State(MessagesState):
-    # Input / document
-    file_path: str
-    deck: str
+    # Input
+    input_mode: NotRequired[str]
+    file_path: NotRequired[str]
+    typed_text: NotRequired[str]
 
     # Document / MCP workflow state
     session_id: NotRequired[str]

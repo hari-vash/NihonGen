@@ -23,7 +23,7 @@ async def check_anki(state: State, runtime: Runtime[RuntimeContext]):
     return {"exists": True, "current_back": current_back}
 
 
-def approval_message(state: State) -> str:
+def approval_message(state: State, deck: str) -> str:
     """Pure approval text with before/after diff. Offline-testable."""
     diff = ""
     if state.get("current_back"):
@@ -35,16 +35,16 @@ def approval_message(state: State) -> str:
             f"{_display(new_back)}\n"
         )
     return (
-        f"The Kanji {state['kanji']} already exists in the Anki deck '{state['deck']}'.\n\n"
+        f"The Kanji {state['kanji']} already exists in the Anki deck '{deck}'.\n\n"
         "Do you want to update the existing flashcard with the newly generated content?"
         f"{diff}"
     )
 
 
-def approve_update(state: State):
+def approve_update(state: State, runtime: Runtime[RuntimeContext]):
     decision = interrupt({
             "type": "anki_update_approval",
-            "message": approval_message(state),
+            "message": approval_message(state, runtime.context.config.anki_deck),
         })
 
     return {"last_reply": str(decision), "reply_prompt": "anki_approval"}
@@ -76,9 +76,10 @@ async def update_flashcard(state: State, runtime: Runtime[RuntimeContext]):
         )}
 
 
-def approve_create(state: State):
+def approve_create(state: State, runtime: Runtime[RuntimeContext]):
+    deck = runtime.context.config.anki_deck
     decision = interrupt({"type": "anki_create_approval",
-            "message": f"Do you want to add the Kanji {state['kanji']} to the Anki deck '{state['deck']}'?"})
+            "message": f"Do you want to add the Kanji {state['kanji']} to the Anki deck '{deck}'?"})
 
     return {"last_reply": str(decision), "reply_prompt": "anki_approval"}
 

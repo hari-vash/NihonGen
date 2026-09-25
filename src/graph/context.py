@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from mcp import ClientSession
+from application.config import Config
 from llm.model import LLMModels
 from infrastructure.anki import AnkiClient
 from infrastructure.dictionary import DictionaryService
@@ -10,3 +11,4 @@ class RuntimeContext:
     models: LLMModels
     dictionary: DictionaryService
     anki: AnkiClient
+    config: Config

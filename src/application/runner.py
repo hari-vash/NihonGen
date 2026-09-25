@@ -116,7 +116,14 @@ async def run_app():
 
     config = {"configurable": {"thread_id": thread_id}}
 
-    file_path = await asyncio.to_thread(input,"Enter the path to your Japanese text/PDF file: ")
+    mode = await asyncio.to_thread(input, "Learn from (1) a document file or (2) typed text? [1/2]: ")
+
+    if mode.strip() == "2":
+        typed_text = await asyncio.to_thread(input, "Type a kanji, a word (e.g. 友達), or a short sentence: ")
+        initial_state = {"input_mode": "typed", "typed_text": typed_text.strip()}
+    else:
+        file_path = await asyncio.to_thread(input, "Enter the path to your Japanese text/PDF file: ")
+        initial_state = {"input_mode": "document", "file_path": file_path.strip()}
 
     async with stdio_client(server_params) as (read, write):
         async with ClientSession(read, write) as session:
@@ -128,17 +135,18 @@ async def run_app():
                 print(f"\nCannot reach Anki at {app_config.anki_url}: {exc}")
                 return
 
-            context = RuntimeContext(mcp_session=session,models=models,dictionary=dictionary,anki=anki)
+            context = RuntimeContext(mcp_session=session,models=models,dictionary=dictionary,anki=anki,config=app_config)
 
-            final_state = await run_interactive_graph(
-                graph=graph,
-                initial_state={
-                    "file_path": file_path.strip(),
-                    "deck": app_config.anki_deck
-                },
-                config=config,
-                context=context
-            )
+            try:
+                final_state = await run_interactive_graph(
+                    graph=graph,
+                    initial_state=initial_state,
+                    config=config,
+                    context=context
+                )
+            except ValueError as exc:
+                print(f"\n{exc}")
+                return
 
     print("\nProcessing complete.")
 
