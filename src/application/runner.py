@@ -28,7 +28,7 @@ async def run_interactive_graph(graph, initial_state, config, context):
     )
 
     last_rendered_kanji = None
-    evaluation_rendered = True
+    rendered_attempts = 0
     last_rendered_explanation = None
     last_rendered_anki_status = None
     skip_noticed_for = None
@@ -37,7 +37,7 @@ async def run_interactive_graph(graph, initial_state, config, context):
         current_kanji = result.get("kanji")
 
         if current_kanji and current_kanji != last_rendered_kanji:
-            evaluation_rendered = False
+            rendered_attempts = 0
             last_rendered_explanation = None
             last_rendered_anki_status = None
 
@@ -51,9 +51,10 @@ async def run_interactive_graph(graph, initial_state, config, context):
 
             last_rendered_kanji = current_kanji
 
-        if result.get("quiz_evaluation") and not evaluation_rendered:
-            renderer.render_quiz_result(result["quiz_evaluation"])
-            evaluation_rendered = True
+        attempts = result.get("quiz_attempts") or []
+        if len(attempts) > rendered_attempts:
+            renderer.render_quiz_result(attempts[-1])
+            rendered_attempts = len(attempts)
 
         if result.get("anki_status") and result["anki_status"] != last_rendered_anki_status:
             renderer.render_anki_result(result["anki_status"])

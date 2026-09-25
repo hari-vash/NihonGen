@@ -16,8 +16,12 @@ def _tutor_state():
 
 
 def test_current_question_prefers_stored_text_after_tutor():
+    from domain.generation_schema import QuizQuestion
+
     state = {
-        "current_question_text": "What reading is used for 水 alone?",
+        "current_question": QuizQuestion(
+            type="reading", prompt="What reading is used for 水 alone?", expected="mizu"
+        ),
         "messages": [
             AIMessage(content="What reading is used for 水 alone?"),
             HumanMessage(content="what does mizu mean?"),
@@ -49,11 +53,14 @@ def test_tutor_leaves_quiz_round_untouched():
 
 
 def test_generate_quiz_question_stores_text():
-    class FakeLLM:
-        async def ainvoke(self, prompt):
-            return AIMessage(content="What reading is used for 水 alone?")
+    from domain.generation_schema import QuizQuestion
 
-    rt = SimpleNamespace(context=SimpleNamespace(models=SimpleNamespace(llm=FakeLLM())))
+    class FakeExaminer:
+        async def ainvoke(self, prompt):
+            assert "reading" in prompt
+            return QuizQuestion(type="reading", prompt="What reading is used for 水 alone?", expected="mizu")
+
+    rt = SimpleNamespace(context=SimpleNamespace(models=SimpleNamespace(examiner=FakeExaminer())))
     state = {
         "kanji": "水",
         "quiz_round": 0,
@@ -62,5 +69,7 @@ def test_generate_quiz_question_stores_text():
         ),
     }
     out = asyncio.run(generate_quiz_question(state, rt))
-    assert out["current_question_text"] == "What reading is used for 水 alone?"
+    assert out["current_question"].prompt == "What reading is used for 水 alone?"
+    assert out["current_question"].expected == "mizu"
     assert out["quiz_round"] == 1
+    assert out["messages"][0].content == "What reading is used for 水 alone?"

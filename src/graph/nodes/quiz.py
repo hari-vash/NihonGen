@@ -1,10 +1,33 @@
 from langchain.messages import HumanMessage, SystemMessage, AIMessage
 from langgraph.runtime import Runtime
 from langgraph.types import interrupt
+from domain.generation_schema import QuizAttempt, QuizGrade, QuizQuestion
 from graph.context import RuntimeContext
 from graph.helpers import message_to_text
 from graph.state import State
-from llm.system_prompts import quiz_evaluation_prompt,quiz_question_prompt
+from llm.system_prompts import quiz_grade_prompt,quiz_question_prompt
+
+READING_FAMILY = {"reading", "onkun_choice", "in_context_reading", "word_reading"}
+MEANING_FAMILY = {"meaning", "word_meaning"}
+
+ALL_QUESTION_TYPES = sorted(READING_FAMILY | MEANING_FAMILY)
+
+QUIZ_LENGTH = 5
+
+
+def allowed_types(attempts: list[QuizAttempt]) -> list[str]:
+    """Pure coverage rule: by question 5 both families must appear. On the
+    last question, restrict the examiner to the missing family."""
+    used = {a.question.type for a in attempts}
+    if len(attempts) >= QUIZ_LENGTH - 1:
+        missing = []
+        if not used & READING_FAMILY:
+            missing.extend(sorted(READING_FAMILY))
+        if not used & MEANING_FAMILY:
+            missing.extend(sorted(MEANING_FAMILY))
+        if missing:
+            return missing
+    return ALL_QUESTION_TYPES
 
 def quiz_readiness(state: State):
     decision = interrupt({"type": "quiz_readiness",
@@ -43,22 +66,32 @@ async def explain_again(state: State,runtime: Runtime[RuntimeContext]):
 
 
 async def generate_quiz_question(state: State,runtime: Runtime[RuntimeContext]):
-    round_number = state.get("quiz_round", 0) + 1
+    attempts = state.get("quiz_attempts") or []
+    round_number = len(attempts) + 1
+    allowed = allowed_types(attempts)
     prompt = quiz_question_prompt(
         kanji=state["kanji"],
         lesson=state["lesson"].to_polished_string(),
         round_number=round_number,
+        allowed=allowed,
     )
 
-    response = await runtime.context.models.llm.ainvoke(prompt)
+    question = await runtime.context.models.examiner.ainvoke(prompt)
 
-    return {"messages": [response],"quiz_round": round_number,"current_question_text": message_to_text(response)}
+    return {
+        "messages": [AIMessage(content=question.prompt)],
+        "quiz_round": round_number,
+        "current_question": question,
+    }
 
 
 def current_question(state: State) -> str:
-    """The question to (re-)ask. Stored text wins so a tutor detour never
+    """The question to (re-)ask. Stored question wins so a tutor detour never
     turns the tutor's answer into the question (T6)."""
-    return state.get("current_question_text") or message_to_text(state["messages"][-1])
+    pending = state.get("current_question")
+    if pending is not None:
+        return pending.prompt
+    return message_to_text(state["messages"][-1])
 
 
 def wait_for_answer(state: State):
@@ -74,9 +107,35 @@ def wait_for_answer(state: State):
 
 
 async def evaluate_quiz_answer(state: State,runtime: Runtime[RuntimeContext]):
-    prompt = SystemMessage(content=quiz_evaluation_prompt(kanji=state["kanji"],lesson=state["lesson"].to_polished_string()))
-    recent_quiz_messages = state["messages"][-2:]
+    question = state["current_question"]
+    answer = state.get("last_reply") or ""
+    attempts = state.get("quiz_attempts") or []
 
-    response = await runtime.context.models.quiz_evaluation.ainvoke([prompt,*recent_quiz_messages])
+    if state.get("reply_intent") == "dont_know":
+        grade = QuizGrade(
+            outcome="miss",
+            feedback=f"No problem — the answer is: {question.expected}.",
+        )
+    else:
+        grader = runtime.context.models.llm.with_structured_output(QuizGrade, method="json_schema")
+        grade = await grader.ainvoke(
+            quiz_grade_prompt(
+                kanji=state["kanji"],
+                question=question.prompt,
+                expected=question.expected,
+                answer=answer,
+            )
+        )
 
-    return {"quiz_evaluation": response,"messages": [AIMessage(content=(f"Feedback: {response.feedback}\n\n Explanation: {response.explanation}"))]}
+    attempt = QuizAttempt(
+        question=question,
+        user_answer=answer,
+        outcome="dont_know" if state.get("reply_intent") == "dont_know" else grade.outcome,
+        feedback=grade.feedback,
+    )
+
+    return {
+        "quiz_attempts": [*attempts, attempt],
+        "current_question": None,
+        "messages": [AIMessage(content=f"Feedback: {attempt.feedback}")],
+    }

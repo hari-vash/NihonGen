@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 class KanjiFacts(BaseModel):
@@ -81,6 +83,31 @@ class KanjiLesson(BaseModel):
             f"Practice Dialogue:\n{dialogue_str}"
         )
      
+class QuizQuestion(BaseModel):
+    """One graded quiz question. Type coverage is enforced in code (SPEC 8.1)."""
+
+    type: Literal["reading", "meaning", "word_reading", "word_meaning", "in_context_reading", "onkun_choice"] = Field(description="Skill type. Restricted to the allowed list when coverage requires it.")
+    prompt: str = Field(description="The question text shown to the learner. Never includes the answer.")
+    expected: str = Field(description="The expected answer, revealed on miss or dont_know")
+
+
+class QuizAttempt(BaseModel):
+    """One graded answer. The single source of truth for mastery (SPEC 8.1)."""
+
+    question: QuizQuestion = Field(description="The question that was asked, echoed verbatim")
+    user_answer: str = Field(description="The learner's raw answer text")
+    outcome: Literal["correct", "miss", "dont_know"] = Field(description="Grading outcome")
+    feedback: str = Field(description="Encouraging feedback that reveals the correct answer on miss")
+
+
+class QuizGrade(BaseModel):
+    """LLM grading verdict. The node assembles the QuizAttempt so the model
+    can never rewrite the question it graded. Never stored in state."""
+
+    outcome: Literal["correct", "miss"] = Field(description="Grading verdict")
+    feedback: str = Field(description="Encouraging feedback that reveals the correct answer on miss")
+
+
 class QuizEvaluation(BaseModel):
     correct: bool = Field(description="Whether the student's answer is substantially correct.")
     feedback: str = Field(description="Clear and encouraging feedback on the student's result.")

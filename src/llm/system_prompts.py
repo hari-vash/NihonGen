@@ -81,7 +81,11 @@ def lesson_generation_prompt(kanji: str, facts: KanjiFacts, feedback: str | None
     """.strip()
 
 
-def quiz_question_prompt(kanji: str,lesson: str,round_number: int) -> str:
+def quiz_question_prompt(kanji: str,lesson: str,round_number: int,allowed: list[str] | None = None) -> str:
+    type_line = (
+        f"\n\nThe question type MUST be one of: {', '.join(allowed)}."
+        if allowed else ""
+    )
     return f"""
         You are an encouraging and accurate Japanese language tutor.
 
@@ -91,7 +95,7 @@ def quiz_question_prompt(kanji: str,lesson: str,round_number: int) -> str:
         {lesson}
 
         Quiz round: {round_number}
-
+{type_line}
         Generate exactly ONE question testing the student's understanding
         of the target Kanji.
 
@@ -110,6 +114,24 @@ def quiz_question_prompt(kanji: str,lesson: str,round_number: int) -> str:
         Do not provide multiple questions.
         Do not simulate the student's response.
         Ask only one question.
+    """.strip()
+
+
+def quiz_grade_prompt(kanji: str,question: str,expected: str,answer: str) -> str:
+    return f"""
+        You are an accurate and encouraging Japanese language tutor.
+
+        Target Kanji: {kanji}
+
+        Question asked: {question}
+        Expected answer: {expected}
+        Student answer: {answer}
+
+        Grade the answer as correct when the student's understanding is sound,
+        even when the wording differs from the expected answer.
+
+        Give constructive feedback that reveals the correct answer when the
+        student missed it.
     """.strip()
 
 
