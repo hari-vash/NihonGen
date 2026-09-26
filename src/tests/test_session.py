@@ -88,22 +88,20 @@ def test_create_records_added():
     assert out["results"] == [KanjiOutcome(kanji="水", outcome="added")]
 
 
-def test_summary_render(capsys):
+def test_summary_render():
     from application import renderer
 
-    renderer.render_summary(
+    text = renderer.render_summary(
         [
             KanjiOutcome(kanji="水", outcome="added"),
             KanjiOutcome(kanji="車", outcome="parked"),
         ]
     )
-    text = capsys.readouterr().out
     assert "1 added, 1 parked" in text
     assert "水 — added" in text and "車 — parked" in text
 
 
-def test_summary_empty(capsys):
+def test_summary_empty():
     from application import renderer
 
-    renderer.render_summary([])
-    assert "No kanji completed" in capsys.readouterr().out
+    assert "No kanji completed" in renderer.render_summary([])

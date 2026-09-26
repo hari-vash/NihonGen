@@ -15,9 +15,10 @@ from infrastructure.anki import AnkiClient, AnkiError
 from llm.model import build_models
 from infrastructure.dictionary import DictionaryService
 from application import renderer
+from application.channel import Channel, CliChannel
 from application.config import Config
 
-async def run_interactive_graph(graph, initial_state, config, context):
+async def run_interactive_graph(graph, initial_state, config, context, channel: Channel):
     """
     Run the graph and resume it whenever an interrupt occurs.
     """
@@ -42,49 +43,49 @@ async def run_interactive_graph(graph, initial_state, config, context):
             last_rendered_explanation = None
             last_rendered_anki_status = None
 
-            renderer.render_kanji(result["kanji"])
+            await channel.send(renderer.render_kanji(result["kanji"]))
 
             if result.get("dictionary_facts"):
-                renderer.render_kanji_info(result["dictionary_facts"])
+                await channel.send(renderer.render_kanji_info(result["dictionary_facts"]))
 
             if result.get("lesson"):
-                renderer.render_kanji_lesson(result["lesson"])
+                await channel.send(renderer.render_kanji_lesson(result["lesson"]))
 
             last_rendered_kanji = current_kanji
 
         attempts = result.get("quiz_attempts") or []
         if len(attempts) > rendered_attempts:
-            renderer.render_quiz_result(attempts[-1])
+            await channel.send(renderer.render_quiz_result(attempts[-1]))
             rendered_attempts = len(attempts)
 
         if result.get("anki_status") and result["anki_status"] != last_rendered_anki_status:
-            renderer.render_anki_result(result["anki_status"])
+            await channel.send(renderer.render_anki_result(result["anki_status"]))
             last_rendered_anki_status = result["anki_status"]
 
         if result.get("reply_intent") == "skip_kanji" and current_kanji != skip_noticed_for:
-            print(f"\nSkipped {current_kanji} — moving on.")
+            await channel.send(f"\nSkipped {current_kanji} — moving on.")
             skip_noticed_for = current_kanji
 
         interrupts = result.get("__interrupt__")
 
         if not interrupts:
-            renderer.render_summary(result.get("results") or [])
+            await channel.send(renderer.render_summary(result.get("results") or []))
             return result
 
         interrupt_value = interrupts[0].value
 
         if result.get("pending_explanation") and result["pending_explanation"] != last_rendered_explanation:
-            renderer.render_additional_explanation(result["pending_explanation"])
+            await channel.send(renderer.render_additional_explanation(result["pending_explanation"]))
             last_rendered_explanation = result["pending_explanation"]
 
-        renderer.render_interrupt(interrupt_value)
+        await channel.send(renderer.render_interrupt(interrupt_value))
 
         if isinstance(interrupt_value, dict):
             hint = hint_for_interrupt(interrupt_value.get("type", ""))
             if hint:
-                print(hint)
+                await channel.send(hint)
 
-        user_input = await asyncio.to_thread(input,"\n> ")
+        user_input = await channel.ask("\n> ")
 
         result = await graph.ainvoke(
             Command(resume=user_input.strip()),
@@ -112,14 +113,15 @@ async def run_app():
     thread_id = f"kanji_convo_{uuid.uuid4().hex}"
 
     config = {"configurable": {"thread_id": thread_id}}
+    channel = CliChannel()
 
-    mode = await asyncio.to_thread(input, "Learn from (1) a document file or (2) typed text? [1/2]: ")
+    mode = await channel.ask("Learn from (1) a document file or (2) typed text? [1/2]: ")
 
     if mode.strip() == "2":
-        typed_text = await asyncio.to_thread(input, "Type a kanji, a word (e.g. 友達), or a short sentence: ")
+        typed_text = await channel.ask("Type a kanji, a word (e.g. 友達), or a short sentence: ")
         initial_state = {"input_mode": "typed", "typed_text": typed_text.strip()}
     else:
-        file_path = await asyncio.to_thread(input, "Enter the path to your Japanese text/PDF file: ")
+        file_path = await channel.ask("Enter the path to your Japanese text/PDF file: ")
         initial_state = {"input_mode": "document", "file_path": file_path.strip()}
 
     async with stdio_client(server_params) as (read, write):
@@ -129,7 +131,7 @@ async def run_app():
             try:
                 await anki.ping()
             except AnkiError as exc:
-                print(f"\nCannot reach Anki at {app_config.anki_url}: {exc}")
+                await channel.send(f"\nCannot reach Anki at {app_config.anki_url}: {exc}")
                 return
 
             context = RuntimeContext(mcp_session=session,models=models,dictionary=dictionary,anki=anki,config=app_config)
@@ -139,16 +141,17 @@ async def run_app():
                     graph=graph,
                     initial_state=initial_state,
                     config=config,
-                    context=context
+                    context=context,
+                    channel=channel,
                 )
             except (AnkiError, RuntimeError, ValueError) as exc:
-                print(f"\nStopped: {exc}")
+                await channel.send(f"\nStopped: {exc}")
                 return
             except Exception as exc:
-                print(f"\nSomething went wrong ({type(exc).__name__}): {exc}")
+                await channel.send(f"\nSomething went wrong ({type(exc).__name__}): {exc}")
                 return
 
-    print("\nDone.")
+    await channel.send("\nDone.")
 
 
 if __name__ == "__main__":
