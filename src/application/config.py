@@ -9,3 +9,6 @@ class Config(BaseSettings):
     anki_deck: str = "Test_Deck1"
     anki_url: str = "http://127.0.0.1:8765"
     dict_path: str = "data/dictionary.sqlite"
+    discord_token: str = ""
+    discord_owner_id: int = 0
+    discord_channel_id: int = 0

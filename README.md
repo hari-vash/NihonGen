@@ -24,6 +24,14 @@ cd src && uv run python -m infrastructure.build_dictionary
 ```
 This creates `data/dictionary.sqlite` (gitignored). Kanji facts come from this DB, never from the LLM.
 
+## Discord bot (Day 7, in progress)
+
+1. Create an application in the [Discord developer portal](https://discord.com/developers/applications), add a bot, copy its token into `DISCORD_TOKEN`.
+2. Enable the **Message Content** privileged intent (Bot page) — the bot reads thread replies to advance the session.
+3. Invite with `bot` + `applications.commands` scopes.
+4. Set `DISCORD_OWNER_ID` to your numeric user ID (only you can start sessions or answer; everyone else is ignored). Optional `DISCORD_CHANNEL_ID` restricts `/learn` to one channel.
+5. Run: `cd src && uv run python -m application.discord_bot`, then `/learn text:友達` (or attach a TXT/PDF) in your server.
+
 ## Dictionary data
 
 Kanji readings, meanings, stroke counts and example words come from [KANJIDIC2 and JMdict](https://www.edrdg.org), (c) Electronic Dictionary Research and Development Group, used under CC-BY-SA. The raw XML and built index live only in local `data/` and are not committed.
