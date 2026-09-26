@@ -23,6 +23,8 @@ from infrastructure.romaji import kana_to_romaji, to_romaji
 
 VERIFY_MAX_RETRIES = 2
 
+MAX_GLOSSES_PER_WORD = 3
+
 LOG_PATH = Path(__file__).resolve().parents[3] / "evals" / "verification_failures.jsonl"
 
 
@@ -51,6 +53,13 @@ def check_word(kanji: str, word: str, kana: str, hits: list[WordHit]) -> str | N
     if kana not in [h.kana for h in hits]:
         return f"reading {kana} not in JMdict ({', '.join(h.kana for h in hits)})"
     return None
+
+
+def _short_meaning(meaning: str, limit: int = MAX_GLOSSES_PER_WORD) -> str:
+    """Keep the first few JMdict glosses. Full gloss strings carry slang and
+    clutter onto lessons and cards."""
+    parts = [p.strip() for p in meaning.split(";")]
+    return "; ".join(parts[:limit])
 
 
 def _log_failure(kanji: str, word: str, kana: str, reason: str, retries: int) -> None:
@@ -144,7 +153,7 @@ async def verify_lesson(state: State, runtime: Runtime[RuntimeContext]):
                 VerifiedWord(
                     word=w.word,
                     kana=w.kana,
-                    meaning=hits[0].meaning,
+                    meaning=_short_meaning(hits[0].meaning),
                     romaji=kana_to_romaji(w.kana),
                 )
             )

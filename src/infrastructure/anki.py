@@ -102,10 +102,10 @@ class AnkiClient:
         return list(result or [])
 
     async def get_back(self, note_id: int) -> str:
-        infos = await self._request("cardsInfo", {"notes": [note_id]})
-        if not infos:
-            raise AnkiError(f"No card info for note {note_id}.")
-        return infos[0]["fields"]["Back"]["value"]
+        notes = await self._request("notesInfo", {"notes": [note_id]})
+        if not notes:
+            raise AnkiError(f"No info for note {note_id}.")
+        return notes[0]["fields"]["Back"]["value"]
 
     async def add_note(self, front: str, back: str) -> int:
         return await self._request(

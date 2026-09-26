@@ -65,6 +65,7 @@ async def tutor(state: State, runtime: Runtime[RuntimeContext]):
 
     calls = 0
     answer = ""
+    evidence: list[str] = []
     for _ in range(MAX_TUTOR_TOOL_CALLS + 1):
         response = await llm_with_tools.ainvoke(messages)
         messages.append(response)
@@ -80,10 +81,14 @@ async def tutor(state: State, runtime: Runtime[RuntimeContext]):
                 result = tools[name].invoke(args)
             except KeyError:
                 result = f"Unknown tool {name!r}."
+            evidence.append(str(result))
             messages.append(ToolMessage(content=str(result), tool_call_id=call.get("id", "")))
-        answer = answer or "Let me know if you want me to explain that differently."
 
     if not answer:
-        answer = "I could not find an answer. Let me know if you want me to explain that differently."
+        if evidence:
+            shown = "\n".join(evidence)[:600]
+            answer = f"Here's what I found in the dictionary:\n{shown}"
+        else:
+            answer = "I could not find an answer. Let me know if you want me to explain that differently."
 
     return {"messages": [AIMessage(content=answer)], "pending_explanation": answer}

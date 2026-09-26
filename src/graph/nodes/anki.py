@@ -41,13 +41,29 @@ def approval_message(state: State, deck: str) -> str:
     )
 
 
+def unclear_approval_notice(state: State) -> str | None:
+    """Pure refusal reason for conditional replies at an approval gate.
+    Offline-testable. Returns None on first arrival (no prior verdict)."""
+    if state.get("reply_intent") == "unclear" and state.get("last_reply"):
+        return (
+            f"“{state['last_reply'].strip()}” isn't a clear yes or no, "
+            "and partial updates aren't supported — so nothing was changed. "
+            "Please reply yes or no."
+        )
+    return None
+
+
 def approve_update(state: State, runtime: Runtime[RuntimeContext]):
+    notice = unclear_approval_notice(state)
     decision = interrupt({
             "type": "anki_update_approval",
             "message": approval_message(state, runtime.context.config.anki_deck),
         })
 
-    return {"last_reply": str(decision), "reply_prompt": "anki_approval"}
+    update = {"last_reply": str(decision), "reply_prompt": "anki_approval"}
+    if notice is not None:
+        update["pending_explanation"] = notice
+    return update
 
 
 def _record(state: State, outcome: str) -> dict:
@@ -86,10 +102,14 @@ async def update_flashcard(state: State, runtime: Runtime[RuntimeContext]):
 
 def approve_create(state: State, runtime: Runtime[RuntimeContext]):
     deck = runtime.context.config.anki_deck
+    notice = unclear_approval_notice(state)
     decision = interrupt({"type": "anki_create_approval",
             "message": f"Do you want to add the Kanji {state['kanji']} to the Anki deck '{deck}'?"})
 
-    return {"last_reply": str(decision), "reply_prompt": "anki_approval"}
+    update = {"last_reply": str(decision), "reply_prompt": "anki_approval"}
+    if notice is not None:
+        update["pending_explanation"] = notice
+    return update
 
 
 async def create_flashcard(state: State, runtime: Runtime[RuntimeContext]):

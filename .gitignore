@@ -224,6 +224,7 @@ data/JMdict_e
 
 # Runtime verification log (reproducible from a run, not source)
 evals/verification_failures.jsonl
+evals/reply_log.jsonl
 
 # Marimo
 marimo/_static/

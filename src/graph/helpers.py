@@ -119,6 +119,15 @@ def prepass_reply(text: str, prompt: str) -> str:
             if label in allowed:
                 return label
 
+    if prompt == "quiz_answer":
+        # SPEC 8.2: a message containing an answer attempt must be graded.
+        # Single-word replies are never questions, and anything shaped like
+        # either an answer or a question goes to the classifier, which sees
+        # the full text. Only a bare "help" stays deterministic here.
+        if "question" in allowed and normalized == "help":
+            return "question"
+        return "clarify"
+
     if (
         "question" in allowed
         and (normalized.endswith("?")

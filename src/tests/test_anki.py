@@ -88,18 +88,31 @@ def test_find_notes_and_get_back():
     client = StubClient(
         {
             "findNotes": {"result": [11], "error": None},
-            "cardsInfo": {"result": [{"fields": {"Back": {"value": "OLD BACK"}}}], "error": None},
+            "notesInfo": {"result": [{"fields": {"Back": {"value": "OLD BACK"}}}], "error": None},
         }
     )
     assert asyncio.run(client.find_notes("水")) == [11]
     assert asyncio.run(client.get_back(11)) == "OLD BACK"
 
 
+def test_get_back_uses_notes_action():
+    client = StubClient(
+        {
+            "findNotes": {"result": [11], "error": None},
+            "notesInfo": {"result": [{"fields": {"Back": {"value": "OLD BACK"}}}], "error": None},
+        }
+    )
+    asyncio.run(anki_nodes.check_anki(_state(), _runtime(client)))
+    actions = [c[0] for c in client.calls]
+    assert actions == ["findNotes", "notesInfo"]
+    assert client.calls[1][1] == {"notes": [11]}
+
+
 def test_check_anki_stores_current_back():
     client = StubClient(
         {
             "findNotes": {"result": [11], "error": None},
-            "cardsInfo": {"result": [{"fields": {"Back": {"value": "OLD BACK"}}}], "error": None},
+            "notesInfo": {"result": [{"fields": {"Back": {"value": "OLD BACK"}}}], "error": None},
         }
     )
     out = asyncio.run(anki_nodes.check_anki(_state(), _runtime(client)))
@@ -170,6 +183,19 @@ def test_approval_message_shows_diff():
     )
     assert "Current card:" in msg and "OLD\nBACK" in msg
     assert "Proposed card:" in msg and "水泳" in msg
+
+
+def test_unclear_approval_notice():
+    notice = anki_nodes.unclear_approval_notice(
+        {"reply_intent": "unclear", "last_reply": "only the readings"}
+    )
+    assert notice is not None
+    assert "only the readings" in notice and "yes or no" in notice
+
+
+def test_unclear_approval_notice_absent_first_visit():
+    assert anki_nodes.unclear_approval_notice({"reply_intent": "answer", "last_reply": "yes"}) is None
+    assert anki_nodes.unclear_approval_notice({}) is None
 
 
 def test_format_card_back_golden():

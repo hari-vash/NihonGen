@@ -4,9 +4,15 @@ import pytest
 
 from domain.generation_schema import ReplyIntent
 from graph.helpers import HELP_TEXTS, PROMPT_LABELS, hint_for_interrupt, prepass_reply
+from graph.nodes import reply as reply_module
 from graph.nodes.reply import classify_label
 from graph.routing import route_reply_intent, route_tutor_source
 from llm.system_prompts import reply_classifier_prompt
+
+
+@pytest.fixture(autouse=True)
+def _isolated_reply_log(tmp_path, monkeypatch):
+    monkeypatch.setattr(reply_module, "REPLY_LOG_PATH", tmp_path / "reply_log.jsonl")
 
 
 def test_prompt_labels_match_spec():
@@ -42,8 +48,11 @@ def test_prompt_labels_match_spec():
         ("explain again", "quiz_readiness", "not_ready"),
         ("no", "anki_approval", "decline"),
         ("no", "quiz_readiness", "not_ready"),
-        # questions
-        ("what does this mean?", "quiz_answer", "question"),
+        # questions: readiness/approval detect directly; quiz answers defer
+        # to the classifier so answer attempts always get graded (SPEC 8.2)
+        ("what does this mean?", "quiz_answer", "clarify"),
+        ("what", "quiz_answer", "clarify"),
+        ("help", "quiz_answer", "question"),
         ("why is it read that way?", "quiz_readiness", "question"),
         ("help", "anki_approval", "question"),
         # anything else needs the classifier
@@ -87,6 +96,19 @@ def test_classify_label_rogue_coerces_to_unclear():
 def test_classify_label_accepts_valid_llm_label():
     fake = _fake_classifier("unclear", reason="conditional approval")
     assert asyncio.run(classify_label("anki_approval", "ok but only the readings", fake)) == "unclear"
+
+
+def test_classify_label_logs_verdict(tmp_path, monkeypatch):
+    import json
+
+    log = tmp_path / "reply_log.jsonl"
+    monkeypatch.setattr(reply_module, "REPLY_LOG_PATH", log)
+    fake = _fake_classifier("answer")
+    assert asyncio.run(classify_label("quiz_answer", "mizu desu", fake)) == "answer"
+    rows = [json.loads(line) for line in log.read_text(encoding="utf-8").splitlines()]
+    assert len(rows) == 1
+    assert rows[0]["prompt"] == "quiz_answer"
+    assert rows[0]["prepass"] == "clarify" and rows[0]["final"] == "answer"
 
 
 def test_classifier_prompt_lists_allowed_labels():

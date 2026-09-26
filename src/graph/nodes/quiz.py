@@ -115,15 +115,32 @@ def park_kanji(state: State):
     }
 
 
+def question_word(question: QuizQuestion, words: list) -> str | None:
+    """First lesson word appearing in the prompt or expected answer. Pure."""
+    haystack = f"{question.prompt}\n{question.expected}"
+    for word in words:
+        text = word.word if hasattr(word, "word") else word.get("word", "")
+        if text and text in haystack:
+            return text
+    return None
+
+
 async def generate_quiz_question(state: State,runtime: Runtime[RuntimeContext]):
     attempts = state.get("quiz_attempts") or []
     round_number = len(attempts) + 1
     allowed = allowed_types(attempts)
+    words = state["lesson"].words
+    asked = {
+        word
+        for a in attempts
+        if (word := question_word(a.question, words)) is not None
+    }
     prompt = quiz_question_prompt(
         kanji=state["kanji"],
         lesson=state["lesson"].to_polished_string(),
         round_number=round_number,
         allowed=allowed,
+        excluded=sorted(asked),
     )
 
     question = await runtime.context.models.examiner.ainvoke(prompt)
@@ -135,6 +152,13 @@ async def generate_quiz_question(state: State,runtime: Runtime[RuntimeContext]):
             prompt + "\n\nYour last question used a disallowed type. "
             f"Retry with a type from exactly: {', '.join(allowed)}."
         )
+
+    if asked and question_word(question, words) in asked:
+        followup = await runtime.context.models.examiner.ainvoke(
+            prompt + "\n\nYou already asked about "
+            f"{question_word(question, words)}. Ask about a different word."
+        )
+        question = followup
 
     return {
         "messages": [AIMessage(content=question.prompt)],

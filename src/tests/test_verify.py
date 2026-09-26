@@ -56,6 +56,14 @@ def isolated_log(tmp_path, monkeypatch):
     return V.LOG_PATH
 
 
+def test_short_meaning_truncates_glosses():
+    from graph.nodes.verify import _short_meaning
+
+    long = "what; you-know-what; that thing; whatsit; penis; dick; hey!"
+    assert _short_meaning(long) == "what; you-know-what; that thing"
+    assert _short_meaning("swimming") == "swimming"
+
+
 def test_check_word_valid():
     assert check_word("水", "水泳", "すいえい", SUIEI_HITS) is None
 

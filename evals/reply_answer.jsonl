@@ -17,4 +17,6 @@
 {"text": "hmm not sure maybe", "expected": "unclear"}
 {"text": "yees", "expected": "unclear"}
 {"text": "kinda", "expected": "unclear"}
+{"text": "now", "expected": "answer"}
+{"text": "what", "expected": "answer"}
 {"text": "...", "expected": "unclear"}

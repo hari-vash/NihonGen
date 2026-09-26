@@ -240,12 +240,51 @@ def test_generate_quiz_question_retries_defiant_type():
     )
     state = {
         "kanji": "水",
-        "lesson": SimpleNamespace(to_polished_string=lambda: "L"),
+        "lesson": SimpleNamespace(
+            to_polished_string=lambda: "L",
+            words=[SimpleNamespace(word="水泳"), SimpleNamespace(word="水道")],
+        ),
         "quiz_attempts": [_attempt("reading"), _attempt("reading"), _attempt("reading"), _attempt("reading")],
     }
     out = asyncio.run(generate_quiz_question(state, rt))
     assert calls["n"] == 2
     assert out["current_question"].type == "meaning"
+
+
+def test_generate_quiz_question_avoids_repeated_word():
+    from graph.nodes.quiz import generate_quiz_question, question_word
+
+    words = [SimpleNamespace(word="何時"), SimpleNamespace(word="何人")]
+    asked = question_word(_q("reading", "How do you read 何時?", "nanji"), words)
+    assert asked == "何時"
+    assert question_word(_q("meaning", "What does it mean?", "what"), words) is None
+
+    calls = {"n": 0}
+
+    class RepeaterOnce:
+        async def ainvoke(self, prompt):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                return _q("reading", "How do you read 何時?", "nanji")
+            return _q("reading", "How do you read 何人?", "nannin")
+
+    rt = SimpleNamespace(
+        context=SimpleNamespace(models=SimpleNamespace(examiner=RepeaterOnce()))
+    )
+    prior = QuizAttempt(
+        question=_q("reading", "How do you read 何時?", "nanji"),
+        user_answer="nanji",
+        outcome="correct",
+        feedback="good",
+    )
+    state = {
+        "kanji": "何",
+        "lesson": SimpleNamespace(to_polished_string=lambda: "L", words=words),
+        "quiz_attempts": [prior],
+    }
+    out = asyncio.run(generate_quiz_question(state, rt))
+    assert calls["n"] == 2
+    assert "何人" in out["current_question"].prompt
 
 
 def test_current_question_reads_structured():

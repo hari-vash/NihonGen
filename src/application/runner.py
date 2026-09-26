@@ -141,8 +141,11 @@ async def run_app():
                     config=config,
                     context=context
                 )
-            except ValueError as exc:
-                print(f"\n{exc}")
+            except (AnkiError, RuntimeError, ValueError) as exc:
+                print(f"\nStopped: {exc}")
+                return
+            except Exception as exc:
+                print(f"\nSomething went wrong ({type(exc).__name__}): {exc}")
                 return
 
     print("\nDone.")
