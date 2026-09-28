@@ -16,9 +16,9 @@ def _isolated_reply_log(tmp_path, monkeypatch):
 
 
 def test_prompt_labels_match_spec():
-    assert PROMPT_LABELS["quiz_readiness"] == {"ready", "not_ready", "question", "stop", "unclear"}
+    assert PROMPT_LABELS["quiz_readiness"] == {"ready", "not_ready", "question", "skip_kanji", "stop", "unclear"}
     assert PROMPT_LABELS["quiz_answer"] == {"answer", "dont_know", "question", "skip_kanji", "stop", "unclear"}
-    assert PROMPT_LABELS["anki_approval"] == {"approve", "decline", "question", "stop", "unclear"}
+    assert PROMPT_LABELS["anki_approval"] == {"approve", "decline", "question", "skip_kanji", "stop", "unclear"}
 
 
 @pytest.mark.parametrize(
@@ -37,8 +37,9 @@ def test_prompt_labels_match_spec():
         ("quit", "anki_approval", "stop"),
         ("skip", "quiz_answer", "skip_kanji"),
         ("skip this kanji", "quiz_answer", "skip_kanji"),
-        ("skip", "quiz_readiness", "clarify"),
-        ("skip", "anki_approval", "clarify"),
+        ("skip", "quiz_readiness", "skip_kanji"),
+        ("skip this kanji", "quiz_readiness", "skip_kanji"),
+        ("skip", "anki_approval", "skip_kanji"),
         # dont_know is answer-prompt only
         ("i don't know", "quiz_answer", "dont_know"),
         ("idk", "quiz_answer", "dont_know"),
@@ -125,6 +126,7 @@ def test_classifier_prompt_lists_allowed_labels():
         ("quiz_readiness", "ready", False, "generate_quiz_question"),
         ("quiz_readiness", "not_ready", False, "explain_again"),
         ("quiz_readiness", "question", False, "tutor"),
+        ("quiz_readiness", "skip_kanji", False, "advance_kanji"),
         ("quiz_readiness", "stop", False, "end"),
         ("quiz_readiness", "unclear", False, "quiz_readiness"),
         # answer
@@ -139,6 +141,8 @@ def test_classifier_prompt_lists_allowed_labels():
         ("anki_approval", "approve", True, "update_flashcard"),
         ("anki_approval", "decline", False, "advance_kanji"),
         ("anki_approval", "decline", True, "advance_kanji"),
+        ("anki_approval", "skip_kanji", False, "advance_kanji"),
+        ("anki_approval", "skip_kanji", True, "advance_kanji"),
         ("anki_approval", "question", False, "tutor"),
         ("anki_approval", "stop", True, "end"),
         # T8: unclear re-asks the same approval gate

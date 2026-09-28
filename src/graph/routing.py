@@ -16,6 +16,7 @@ def route_reply_intent(state: State):
             "ready": "generate_quiz_question",
             "not_ready": "explain_again",
             "question": "tutor",
+            "skip_kanji": "advance_kanji",
             "stop": "end",
             "unclear": "quiz_readiness",
         }.get(intent, "quiz_readiness")
@@ -36,6 +37,7 @@ def route_reply_intent(state: State):
         return {
             "decline": "advance_kanji",
             "question": "tutor",
+            "skip_kanji": "advance_kanji",
             "stop": "end",
             "unclear": _approval_target(state),
         }.get(intent, _approval_target(state))

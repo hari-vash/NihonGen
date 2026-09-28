@@ -18,3 +18,4 @@
 {"text": "hmm", "expected": "unclear"}
 {"text": "yees", "expected": "unclear"}
 {"text": "approve-ish", "expected": "unclear"}
+{"text": "skip", "expected": "skip_kanji"}

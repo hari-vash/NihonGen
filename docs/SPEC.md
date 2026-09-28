@@ -246,9 +246,9 @@ class ReplyIntent(BaseModel):
 
 | Prompt | Allowed labels |
 |---|---|
-| Ready for quiz? | ready, not_ready, question, stop, unclear |
+| Ready for quiz? | ready, not_ready, question, skip_kanji, stop, unclear |
 | Quiz answer | answer, dont_know, question, skip_kanji, stop, unclear |
-| Anki create/update approval | approve, decline, question, stop, unclear |
+| Anki create/update approval | approve, decline, question, skip_kanji, stop, unclear |
 
 - Deterministic pre-pass first (extend `normalize_yes_no` with skip/stop phrases). Everything it returns as `"clarify"` goes to the small LLM classifier (structured output, low temperature).
 - If the message contains an answer attempt, grade it. The "why" is covered by the explanation.

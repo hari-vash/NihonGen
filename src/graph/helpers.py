@@ -18,9 +18,9 @@ def parse_mcp_json(result) -> dict:
 
 
 PROMPT_LABELS = {
-    "quiz_readiness": {"ready", "not_ready", "question", "stop", "unclear"},
+    "quiz_readiness": {"ready", "not_ready", "question", "skip_kanji", "stop", "unclear"},
     "quiz_answer": {"answer", "dont_know", "question", "skip_kanji", "stop", "unclear"},
-    "anki_approval": {"approve", "decline", "question", "stop", "unclear"},
+    "anki_approval": {"approve", "decline", "question", "skip_kanji", "stop", "unclear"},
 }
 
 _READY_PHRASES = {

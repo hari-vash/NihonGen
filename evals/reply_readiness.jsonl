@@ -18,3 +18,5 @@
 {"text": "ok but only if it's quick", "expected": "unclear"}
 {"text": "yees", "expected": "unclear"}
 {"text": "no, wait, yes", "expected": "unclear"}
+{"text": "skip", "expected": "skip_kanji"}
+{"text": "skip this kanji", "expected": "skip_kanji"}
