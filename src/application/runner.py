@@ -54,6 +54,8 @@ async def run_interactive_graph(graph, initial_state, config, context, channel: 
             last_rendered_kanji = current_kanji
 
         attempts = result.get("quiz_attempts") or []
+        if len(attempts) < rendered_attempts:
+            rendered_attempts = 0
         if len(attempts) > rendered_attempts:
             await channel.send(renderer.render_quiz_result(attempts[-1]))
             rendered_attempts = len(attempts)
@@ -68,15 +70,15 @@ async def run_interactive_graph(graph, initial_state, config, context, channel: 
 
         interrupts = result.get("__interrupt__")
 
+        if result.get("pending_explanation") and result["pending_explanation"] != last_rendered_explanation:
+            await channel.send(renderer.render_additional_explanation(result["pending_explanation"]))
+            last_rendered_explanation = result["pending_explanation"]
+
         if not interrupts:
             await channel.send(renderer.render_summary(result.get("results") or []))
             return result
 
         interrupt_value = interrupts[0].value
-
-        if result.get("pending_explanation") and result["pending_explanation"] != last_rendered_explanation:
-            await channel.send(renderer.render_additional_explanation(result["pending_explanation"]))
-            last_rendered_explanation = result["pending_explanation"]
 
         await channel.send(renderer.render_interrupt(interrupt_value))
 

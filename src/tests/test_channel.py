@@ -80,3 +80,48 @@ def test_run_interactive_graph_through_fake_channel():
     assert graph.resumes == ["yes"]
     joined = "\n".join(channel.sent)
     assert "KANJI: 水" in joined and "ready?" in joined
+
+
+def _attempt(text):
+    return SimpleNamespace(feedback=text, outcome="miss", question=SimpleNamespace(expected="X"))
+
+
+def test_feedback_renders_after_attempts_reset():
+    first = {"kanji": "水", "quiz_attempts": [_attempt("one"), _attempt("two"), _attempt("three")],
+             "__interrupt__": [SimpleNamespace(value={"message": "q?"})]}
+    second = {"kanji": "水", "quiz_attempts": [_attempt("four")],
+              "__interrupt__": [SimpleNamespace(value={"message": "q?"})]}
+    final_state = {"kanji": "水", "results": []}
+
+    class FakeGraph:
+        def __init__(self):
+            self.calls = 0
+
+        async def ainvoke(self, *args, **kwargs):
+            from langgraph.types import Command
+
+            self.calls += 1
+            if self.calls == 1:
+                return first
+            if self.calls == 2:
+                return second
+            return final_state
+
+    channel = FakeChannel(replies=["a", "b"])
+    asyncio.run(run_interactive_graph(FakeGraph(), {}, {}, SimpleNamespace(), channel))
+    joined = "\n".join(channel.sent)
+    assert "three" in joined and "four" in joined
+
+
+def test_terminal_pending_renders_before_summary():
+    final_state = {"kanji": "水", "pending_explanation": "Parked 水: done.", "results": []}
+
+    class FakeGraph:
+        async def ainvoke(self, *args, **kwargs):
+            return final_state
+
+    channel = FakeChannel(replies=[])
+    asyncio.run(run_interactive_graph(FakeGraph(), {}, {}, SimpleNamespace(), channel))
+    joined = "\n".join(channel.sent)
+    assert "Parked 水: done." in joined
+    assert joined.index("Parked 水: done.") < joined.index("Session summary:")
