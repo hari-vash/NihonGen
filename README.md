@@ -1,7 +1,7 @@
 # NihonGen
 > VERSION 3 (Interactive Kanji Tutor) - Complete
 
-An Agentic AI Automation workflow based interactive kanji tutor providing deterministic control with bounded autonomy that teaches from dictionary facts, quizzes you, creates/updates flashcards only after user passes the quiz and approves. Run in your terminal or via a Discord bot, next to your own Anki Deck. 
+An interactive Kanji tutor that teaches from dictionary facts, quizzes you, and only touches your Anki deck after you've passed and approved it. Built as a deterministic LangGraph workflow with bounded autonomy where it earns it, not a free-roaming agent.
 
 ## DEMO
 Demo video coming Soon...
@@ -13,10 +13,8 @@ Demo video coming Soon...
 - So, how about an Anki deck that grows with you as you progress in your japanese learning journey, that's where NihonGen comes in.
 - It not only automates the flashcard making workflow, but also teaches you based on dictionary grounded LLM lessons, quizzes you, evaluates your answers, creates or updates the flashcard only when you approve.
 
--  LLM invent readings, NihonGen inverts that and LLM writes lessons on top of retrieved facts from KANJIDIC2/JMdict dictionaries.
-- Quizzes are a contact: 5 graded questions covering reading and
-meaning, at most 2 misses, the 3rd miss failing early, two review cycles, then
-the kanji is parked.
+-  Most AI tutors just let the LLM invent kanji readings from memory, which is how you end up with confidently wrong facts. NihonGen flips that: the LLM only write the lesson, every reading and example word comes from KANJIDIC2/JMdict first.
+- And it doesn't just take your word for it that you've learned a kanji, you're quizzed on it. 5 questions covering reading and meaning, up to 2 misses, a third miss ends the quiz early and you get two more passes at it before it's set aside for later.
 
 ## What it does (features)
 
