@@ -4,7 +4,7 @@
 An interactive Kanji tutor that teaches from dictionary facts, quizzes you, and only touches your Anki deck after you've passed and approved it. Built as a deterministic LangGraph workflow with bounded autonomy where it earns it, not a free-roaming agent.
 
 ## DEMO
-Demo video coming soon...
+https://github.com/user-attachments/assets/6d0770bf-3857-43b5-8598-05e01071f603
 
 ## Why This Exists
 - Anki is an SRS (spaced repetition system) based flashcard app. This gives two options, either download a pre-made kanji deck or make your own as you study and progress.
